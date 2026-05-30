@@ -1,0 +1,29 @@
+{
+  "name": "ace-corporation-chatbot",
+  "version": "1.0.0",
+  "description": "Sitio web con chatbot IA para ACE Corporation - #1 en Plastificaciones",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ace",
+    "plastificado",
+    "chatbot",
+    "ia",
+    "claude"
+  ],
+  "author": "ACE Corporation",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "@anthropic-ai/sdk": "^0.24.3",
+    "dotenv": "^16.4.5",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": "18.0.0"
+  }
+}

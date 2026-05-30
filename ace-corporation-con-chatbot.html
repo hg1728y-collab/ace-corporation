@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACE Corporation - #1 en Plastificaciones | Montevideo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #1B5E20;
+            --green-light: #2E7D32;
+            --green-accent: #4CAF50;
+            --green-pale: #E8F5E9;
+            --dark: #1a1a1a;
+            --text-dark: #2C2C2C;
+            --text-light: #F5F5F5;
+            --gray: #757575;
+            --white: #FFFFFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Poppins', sans-serif; color: var(--text-dark); background: var(--white); line-height: 1.7; overflow-x: hidden; }
+
+        .dots-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, var(--green-accent) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            background: var(--white);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--green-pale);
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 20px rgba(27, 94, 32, 0.08);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary-green);
+            transition: all 0.3s ease;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.3);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2.5rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        nav a::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-green);
+            transition: width 0.4s ease;
+        }
+
+        nav a:hover {
+            color: var(--primary-green);
+        }
+
+        nav a:hover::before {
+            width: 100%;
+        }
+
+        .cta-header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            color: white;
+            padding: 0.8rem 2rem;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.2);
+            white-space: nowrap;
+        }
+
+        .cta-header:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(27, 94, 32, 0.4);
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
+            color: white;
+            padding: 8rem 3rem;
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -20%;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse-glow 8s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -15%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse-glow 10s ease-in-out infinite;
+            animation-delay: 1s;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: var(--green-accent);
+            margin-bottom: 1rem;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: slideInLeft 0.8s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .hero h1 {
+            font-size: 4.2rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            animation: slideInLeft 0.8s ease-out 0.2s both;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.8;
+            max-width: 600px;
+            animation: slideInLeft 0.8s ease-out 0.4s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            animation: slideInLeft 0.8s ease-out 0.6s both;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            color: white;
+            padding: 1.2rem 2.8rem;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            border: 2px solid var(--primary-green);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.3);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+
+        .btn-primary:hover::before {
+            left: 0;
+        }
+
+        .btn-primary:hover {
+            color: var(--green-accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(27, 94, 32, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 1.2rem 2.8rem;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            border: 2px solid white;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--primary-green);
+            transform: translateY(-3px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            padding: 6rem 0;
+            position: relative;
+        }
+
+        .section-label {
+            color: var(--primary-green);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 3.2rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .section-description {
+            font-size: 1.05rem;
+            color: var(--gray);
+            max-width: 700px;
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        /* ===== SERVICIOS ===== */
+        .services {
+            background: var(--white);
+            position: relative;
+        }
+
+        .services::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--green-accent), transparent);
+            opacity: 0.5;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3rem;
+            margin-top: 3rem;
+            position: relative;
+        }
+
+        .service-item {
+            display: flex;
+            gap: 2rem;
+            padding: 2.5rem;
+            background: linear-gradient(135deg, var(--green-pale) 0%, white 100%);
+            border: 1px solid #C8E6C9;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .service-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary-green) 0%, var(--green-light) 100%);
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: transform 0.4s ease;
+        }
+
+        .service-item:hover {
+            border-color: var(--primary-green);
+            box-shadow: 0 20px 50px rgba(27, 94, 32, 0.15);
+            transform: translateY(-8px);
+            background: linear-gradient(135deg, #A5D6A7 0%, var(--green-pale) 100%);
+        }
+
+        .service-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .service-number {
+            font-size: 3.5rem;
+            color: var(--green-accent);
+            font-weight: 800;
+            min-width: 80px;
+            opacity: 0.3;
+        }
+
+        .service-content h3 {
+            font-size: 1.4rem;
+            color: var(--primary-green);
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+
+        .service-content p {
+            color: var(--gray);
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        /* ===== CONTACTO ===== */
+        .contact {
+            background: var(--white);
+        }
+
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+
+        .contact-info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .contact-info-item {
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--green-pale);
+        }
+
+        .contact-info-item .label {
+            color: var(--primary-green);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .contact-info-item p {
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 1.1rem;
+            border: 2px solid #E8F5E9;
+            background: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            color: white;
+            padding: 1.2rem 2rem;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(27, 94, 32, 0.4);
+        }
+
+        /* ===== STATS ===== */
+        .stats {
+            background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: rotate-slow 20s linear infinite;
+        }
+
+        @keyframes rotate-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 3rem 2rem;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-green), var(--green-light));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .stat-box:hover {
+            background: rgba(76, 175, 80, 0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(76, 175, 80, 0.2);
+        }
+
+        .stat-box:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            color: var(--green-accent);
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: var(--dark);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 4rem 0 1.5rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 3rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-col h4 {
+            color: var(--green-accent);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-col a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .footer-col a:hover {
+            color: var(--green-accent);
+            padding-left: 0.5rem;
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 3rem;
+            border-top: 1px solid rgba(76, 175, 80, 0.2);
+            padding-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ===== CHATBOT ===== */
+        .chatbot-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(27, 94, 32, 0.4);
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 1.8rem;
+            border: none;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(27, 94, 32, 0.6);
+        }
+
+        .chatbot-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 380px;
+            height: 600px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 999;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .chatbot-window.active {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .chatbot-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .chatbot-close:hover {
+            transform: rotate(90deg);
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .message.bot {
+            background: var(--green-pale);
+            color: var(--primary-green);
+            align-self: flex-start;
+            border-left: 3px solid var(--primary-green);
+        }
+
+        .message.user {
+            background: var(--primary-green);
+            color: white;
+            align-self: flex-end;
+            border-right: 3px solid var(--primary-green);
+        }
+
+        .chatbot-input-area {
+            padding: 1.5rem;
+            border-top: 1px solid #E8F5E9;
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .chatbot-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #E8F5E9;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .chatbot-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.1);
+        }
+
+        .chatbot-send {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .chatbot-send:hover {
+            background: var(--green-light);
+            transform: translateY(-2px);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            background: var(--green-pale);
+            border-left: 3px solid var(--primary-green);
+            border-radius: 8px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.5; transform: translateY(0); }
+            30% { opacity: 1; transform: translateY(-8px); }
+        }
+
+        @media (max-width: 1024px) {
+            .services-grid { grid-template-columns: 1fr; }
+            .stats-container { grid-template-columns: repeat(2, 1fr); }
+            .contact-wrapper { grid-template-columns: 1fr; }
+            .footer-content { grid-template-columns: repeat(2, 1fr); }
+            .hero h1 { font-size: 3.2rem; }
+            .section-title { font-size: 2.5rem; }
+        }
+
+        @media (max-width: 768px) {
+            nav ul { display: none; }
+            .hero { padding: 4rem 2rem; min-height: 60vh; }
+            .hero h1 { font-size: 2.2rem; }
+            .header-container { padding: 0 2rem; }
+            .container { padding: 0 2rem; }
+            section { padding: 4rem 0; }
+            .section-title { font-size: 2rem; }
+            .stats-container { grid-template-columns: 1fr; }
+            .footer-content { grid-template-columns: 1fr; }
+            .chatbot-window { width: 90%; right: 5%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dots-background"></div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <a href="#" class="logo-container">
+                <div class="logo-icon">A</div>
+                <div>
+                    <div style="font-size: 1.2rem; color: var(--primary-green);">ACE</div>
+                    <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--gray);">CORPORATION</div>
+                </div>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#empresa">Empresa</a></li>
+                    <li><a href="#stats">Experiencia</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </nav>
+            <a href="#contacto" class="cta-header">Presupuesto</a>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-subtitle">#1 en Plastificaciones de Uruguay</div>
+            <h1>Pulido y Plastificado de Pisos</h1>
+            <p>Llevamos 20+ años transformando pisos ordinarios en superficies extraordinarias. Tecnología internacional, equipo especializado y garantía de excelencia en cada proyecto.</p>
+            <div class="hero-buttons">
+                <a href="#contacto" class="btn-primary">Solicitar Presupuesto</a>
+                <a href="#servicios" class="btn-secondary">Ver Servicios</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICIOS -->
+    <section class="services" id="servicios">
+        <div class="container">
+            <div class="section-label">Especialidades ACE</div>
+            <h2 class="section-title">Soluciones de Plastificación Líder</h2>
+            <p class="section-description">Como #1 en plastificaciones de Uruguay, ofrecemos soluciones integrales con garantía de máxima durabilidad.</p>
+
+            <div class="services-grid">
+                <div class="service-item">
+                    <div class="service-number">01</div>
+                    <div class="service-content">
+                        <h3>Pulido Premium</h3>
+                        <p>Eliminamos imperfecciones, arañazos y marcas con equipos especializados de última generación, restaurando la belleza natural de tu madera.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">02</div>
+                    <div class="service-content">
+                        <h3>Plastificado Industrial</h3>
+                        <p>Capas protectoras de polímeros de clase mundial que garantizan máxima resistencia al desgaste, humedad y rayos UV.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">03</div>
+                    <div class="service-content">
+                        <h3>Hidrolaqueado Ecológico</h3>
+                        <p>Acabado a base de agua respetuoso con el ambiente que mantiene el color natural mientras proporciona resistencia superior.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">04</div>
+                    <div class="service-content">
+                        <h3>Instalación de Parquet</h3>
+                        <p>Servicio completo de instalación de pisos premium con corte preciso, pegado profesional y acabado impecable.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">05</div>
+                    <div class="service-content">
+                        <h3>Reparación y Restauración</h3>
+                        <p>Reparamos pisos dañados, reemplazamos tablas, rellenamos grietas y restauramos pisos antiguos a su esplendor original.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">06</div>
+                    <div class="service-content">
+                        <h3>Encerado Artesanal</h3>
+                        <p>Acabado tradicional de lujo que proporciona brillo natural, calidez y protección ideal para estilos clásicos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ESTADÍSTICAS -->
+    <section class="stats" id="stats">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <div class="section-label" style="color: var(--green-accent);">#1 EN PLASTIFICACIONES</div>
+                <h2 class="section-title" style="color: white;">Líderes del Mercado en Uruguay</h2>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">Años de Trayectoria</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">5000+</div>
+                    <div class="stat-label">Proyectos Realizados</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Satisfacción Cliental</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">24h</div>
+                    <div class="stat-label">Respuesta Garantizada</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section class="contact" id="contacto">
+        <div class="container">
+            <div class="section-label">Conecta Con Los Líderes</div>
+            <h2 class="section-title">Contáctanos - #1 en Plastificaciones</h2>
+            <p class="section-description">Eres merecedor de lo mejor. Contacta con nuestro equipo profesional para una consulta sin compromiso. Responderemos en menos de 24 horas.</p>
+
+            <div class="contact-wrapper">
+                <div class="contact-info-group">
+                    <div class="contact-info-item">
+                        <span class="label">📍 Ubicación</span>
+                        <p>25 de Mayo 202<br>Esquina Maciel<br>Montevideo, Uruguay<br>(Ciudad Vieja)</p>
+                    </div>
+                    <div class="contact-info-item">
+                        <span class="label">📞 Teléfono</span>
+                        <p><a href="tel:+59829156686" style="color: var(--primary-green); text-decoration: none; font-weight: 600;">+598 2915-6686</a></p>
+                    </div>
+                    <div class="contact-info-item">
+                        <span class="label">📱 Celular WhatsApp</span>
+                        <p><a href="tel:+59809641941" style="color: var(--primary-green); text-decoration: none; font-weight: 600;">+598 096-41-9412</a></p>
+                    </div>
+                    <div class="contact-info-item">
+                        <span class="label">✉️ Email</span>
+                        <p><a href="mailto:ace@ace.com.uy" style="color: var(--primary-green); text-decoration: none; font-weight: 600;">ace@ace.com.uy</a></p>
+                    </div>
+                    <div class="contact-info-item">
+                        <span class="label">🕐 Horarios</span>
+                        <p>Lunes a Viernes: 8:00 - 18:00<br>Sábados: 9:00 - 13:00<br>Domingos: Cerrado</p>
+                    </div>
+                </div>
+
+                <form class="contact-form" action="https://formsubmit.co/ace@ace.com.uy" method="POST">
+                    <input type="hidden" name="_captcha" value="false">
+                    <input type="hidden" name="_next" value="https://yourdomain.com/success.html">
+                    
+                    <div class="form-group">
+                        <label for="nombre">Nombre Completo *</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Correo Electrónico *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono">
+                    </div>
+                    <div class="form-group">
+                        <label for="mensaje">Cuéntanos sobre tu proyecto *</label>
+                        <textarea id="mensaje" name="mensaje" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">Enviar Solicitud</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h4>ACE Corporation</h4>
+                <p>Líderes en servicios premium de pulido y plastificado de pisos en Uruguay. Tradición, experiencia y tecnología.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Servicios</h4>
+                <ul>
+                    <li><a href="#servicios">Pulido Premium</a></li>
+                    <li><a href="#servicios">Plastificado</a></li>
+                    <li><a href="#servicios">Hidrolaqueado</a></li>
+                    <li><a href="#servicios">Parquet</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Empresa</h4>
+                <ul>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#stats">Experiencia</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contacto Directo</h4>
+                <ul>
+                    <li><a href="tel:+59829156686">2915-6686</a></li>
+                    <li><a href="tel:+59809641941">096-41-9412</a></li>
+                    <li><a href="mailto:ace@ace.com.uy">ace@ace.com.uy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 ACE Corporation. #1 en Plastificaciones de Uruguay.</p>
+        </div>
+    </footer>
+
+    <!-- CHATBOT TOGGLE -->
+    <button class="chatbot-toggle" onclick="toggleChatbot()">💬</button>
+
+    <!-- CHATBOT WINDOW -->
+    <div class="chatbot-window" id="chatbotWindow">
+        <div class="chatbot-header">
+            <h3>ACE Assistant</h3>
+            <button class="chatbot-close" onclick="toggleChatbot()">✕</button>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot">
+                Hola 👋 Soy el asistente de ACE Corporation. ¿Cómo te puedo ayudar hoy?
+            </div>
+        </div>
+        <div class="chatbot-input-area">
+            <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Escribe tu mensaje..." onkeypress="handleEnter(event)">
+            <button class="chatbot-send" onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChatbot() {
+            const chatbot = document.getElementById('chatbotWindow');
+            chatbot.classList.toggle('active');
+            if (chatbot.classList.contains('active')) {
+                document.getElementById('chatbotInput').focus();
+            }
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        let conversationHistory = [];
+
+        async function sendMessage() {
+            const input = document.getElementById('chatbotInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Add user message to display
+            const messagesDiv = document.getElementById('chatbotMessages');
+            const userMsgDiv = document.createElement('div');
+            userMsgDiv.className = 'message user';
+            userMsgDiv.textContent = message;
+            messagesDiv.appendChild(userMsgDiv);
+
+            // Clear input
+            input.value = '';
+
+            // Add to conversation history
+            conversationHistory.push({ role: 'user', content: message });
+
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            messagesDiv.appendChild(typingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                // Send to backend API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        history: conversationHistory
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Remove typing indicator
+                typingDiv.remove();
+
+                // Add bot response
+                const botMsgDiv = document.createElement('div');
+                botMsgDiv.className = 'message bot';
+                botMsgDiv.textContent = data.response;
+                messagesDiv.appendChild(botMsgDiv);
+
+                // Add to history
+                conversationHistory.push({ role: 'assistant', content: data.response });
+
+            } catch (error) {
+                typingDiv.remove();
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message bot';
+                errorDiv.textContent = 'Disculpa, tuve un problema. Por favor intenta de nuevo o contáctanos directamente.';
+                messagesDiv.appendChild(errorDiv);
+            }
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Initialize chatbot with welcome message
+        window.addEventListener('load', () => {
+            // Chatbot is ready
+        });
+    </script>
+</body>
+</html>
