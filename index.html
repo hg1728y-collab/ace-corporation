@@ -68,7 +68,6 @@
             font-size: 1.3rem;
             font-weight: 800;
             color: var(--primary-green);
-            transition: all 0.3s ease;
         }
 
         .logo-icon {
@@ -157,6 +156,28 @@
             align-items: flex-start;
         }
 
+        .hero-logo {
+            position: absolute;
+            top: 50%;
+            right: 5%;
+            transform: translateY(-50%);
+            opacity: 0.15;
+            z-index: 1;
+            animation: float-logo 6s ease-in-out infinite;
+        }
+
+        .logo-hero {
+            width: 500px;
+            height: 500px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 30px rgba(76, 175, 80, 0.3));
+        }
+
+        @keyframes float-logo {
+            0%, 100% { transform: translateY(-50%) translateX(0px); }
+            50% { transform: translateY(-50%) translateX(20px); }
+        }
+
         .hero::before {
             content: '';
             position: absolute;
@@ -214,7 +235,14 @@
             margin-bottom: 1.5rem;
             line-height: 1.1;
             letter-spacing: -1px;
-            animation: slideInLeft 0.8s ease-out 0.2s both;
+            animation: slideInLeft 0.8s ease-out 0.2s both, float-subtle 3s ease-in-out infinite;
+            text-transform: uppercase;
+            text-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        @keyframes float-subtle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
         }
 
         .hero p {
@@ -245,29 +273,10 @@
             font-size: 0.9rem;
             border-radius: 4px;
             border: 2px solid var(--primary-green);
-            position: relative;
-            overflow: hidden;
             box-shadow: 0 4px 15px rgba(27, 94, 32, 0.3);
         }
 
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: var(--dark);
-            transition: left 0.4s ease;
-            z-index: -1;
-        }
-
-        .btn-primary:hover::before {
-            left: 0;
-        }
-
         .btn-primary:hover {
-            color: var(--green-accent);
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(27, 94, 32, 0.5);
         }
@@ -412,109 +421,6 @@
             line-height: 1.8;
         }
 
-        /* ===== CONTACTO ===== */
-        .contact {
-            background: var(--white);
-        }
-
-        .contact-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            margin-top: 3rem;
-        }
-
-        .contact-info-group {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .contact-info-item {
-            padding-bottom: 2rem;
-            border-bottom: 2px solid var(--green-pale);
-        }
-
-        .contact-info-item .label {
-            color: var(--primary-green);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
-            display: block;
-        }
-
-        .contact-info-item p {
-            color: var(--text-dark);
-            font-size: 1.1rem;
-            line-height: 1.8;
-        }
-
-        .contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            color: var(--text-dark);
-            font-size: 0.9rem;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            padding: 1.1rem;
-            border: 2px solid #E8F5E9;
-            background: white;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary-green);
-            box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
-            color: white;
-            padding: 1.2rem 2rem;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            border-radius: 4px;
-            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.2);
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(27, 94, 32, 0.4);
-        }
-
         /* ===== STATS ===== */
         .stats {
             background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
@@ -598,6 +504,202 @@
             letter-spacing: 1px;
         }
 
+        /* ===== GALERÍA ===== */
+        .galeria {
+            background: var(--white);
+            position: relative;
+        }
+
+        .galeria::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--green-accent), transparent);
+            opacity: 0.5;
+        }
+
+        .galeria-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .galeria-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            height: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+        }
+
+        .galeria-item:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 60px rgba(27, 94, 32, 0.2);
+        }
+
+        .galeria-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+            filter: brightness(1);
+        }
+
+        .galeria-item:hover img {
+            transform: scale(1.08);
+            filter: brightness(0.7);
+        }
+
+        .galeria-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(27, 94, 32, 0.9) 0%, rgba(46, 125, 50, 0.85) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .galeria-item:hover .galeria-overlay {
+            opacity: 1;
+        }
+
+        .galeria-overlay h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .galeria-overlay p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            .galeria-grid { grid-template-columns: 1fr; }
+            .galeria-item { height: 300px; }
+        }
+
+        /* ===== CONTACTO ===== */
+        .contact {
+            background: var(--white);
+        }
+
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+
+        .contact-info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .contact-info-item {
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--green-pale);
+        }
+
+        .contact-info-item .label {
+            color: var(--primary-green);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .contact-info-item p {
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .contact-info-item a {
+            color: var(--primary-green);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 1.1rem;
+            border: 2px solid #E8F5E9;
+            background: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            color: white;
+            padding: 1.2rem 2rem;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(27, 94, 32, 0.4);
+        }
+
         /* ===== FOOTER ===== */
         footer {
             background: var(--dark);
@@ -655,7 +757,7 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
-        /* ===== CHATBOT ===== */
+        /* ===== CHATBOT SIMPLE ===== */
         .chatbot-toggle {
             position: fixed;
             bottom: 30px;
@@ -809,37 +911,6 @@
             transform: translateY(-2px);
         }
 
-        .typing-indicator {
-            display: flex;
-            gap: 0.3rem;
-            align-items: center;
-            padding: 0.8rem 1rem;
-            background: var(--green-pale);
-            border-left: 3px solid var(--primary-green);
-            border-radius: 8px;
-        }
-
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: var(--primary-green);
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% { opacity: 0.5; transform: translateY(0); }
-            30% { opacity: 1; transform: translateY(-8px); }
-        }
-
         @media (max-width: 1024px) {
             .services-grid { grid-template-columns: 1fr; }
             .stats-container { grid-template-columns: repeat(2, 1fr); }
@@ -890,6 +961,9 @@
 
     <!-- HERO -->
     <section class="hero">
+        <div class="hero-logo">
+            <img src="logo-ace.png" alt="ACE Corporation Logo" class="logo-hero">
+        </div>
         <div class="hero-content">
             <div class="hero-subtitle">#1 en Plastificaciones de Uruguay</div>
             <h1>Pulido y Plastificado de Pisos</h1>
@@ -989,12 +1063,50 @@
         </div>
     </section>
 
-    <!-- CONTACTO -->
+    <!-- GALERÍA DE TRABAJOS -->
+    <section class="galeria" id="galeria">
+        <div class="container">
+            <div class="section-label">Nuestros Trabajos</div>
+            <h2 class="section-title">Proyectos Realizados con Excelencia</h2>
+            <p class="section-description">Estos son algunos de los proyectos que hemos completado con éxito, demostrando nuestro compromiso con la calidad y la satisfacción del cliente.</p>
+
+            <div class="galeria-grid">
+                <div class="galeria-item">
+                    <img src="trabajo-1.jpg" alt="Pulido de piso - Proyecto 1" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Pulido Premium</h3>
+                        <p>Restauración completa</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-2.jpg" alt="Plastificado industrial - Proyecto 2" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Plastificado Industrial</h3>
+                        <p>Acabado profesional</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-3.jpg" alt="Resultado final - Proyecto 3" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Transformación Total</h3>
+                        <p>De dañado a perfecto</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-4.jpg" alt="Instalación de parquet - Proyecto 4" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Parquet Instalado</h3>
+                        <p>Colocación experta</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
     <section class="contact" id="contacto">
         <div class="container">
             <div class="section-label">Conecta Con Los Líderes</div>
             <h2 class="section-title">Contáctanos - #1 en Plastificaciones</h2>
-            <p class="section-description">Eres merecedor de lo mejor. Contacta con nuestro equipo profesional para una consulta sin compromiso. Responderemos en menos de 24 horas.</p>
+            <p class="section-description">Eres merecedor de lo mejor. Contacta con nuestro equipo profesional para una consulta sin compromiso.</p>
 
             <div class="contact-wrapper">
                 <div class="contact-info-group">
@@ -1004,25 +1116,24 @@
                     </div>
                     <div class="contact-info-item">
                         <span class="label">📞 Teléfono</span>
-                        <p><a href="tel:+59829156686" style="color: var(--primary-green); text-decoration: none; font-weight: 600;">+598 2915-6686</a></p>
+                        <p><a href="tel:+59829156686">+598 2915-6686</a></p>
                     </div>
                     <div class="contact-info-item">
                         <span class="label">📱 Celular WhatsApp</span>
-                        <p><a href="tel:+59809641941" style="color: var(--primary-green); text-decoration: none; font-weight: 600;">+598 096-41-9412</a></p>
+                        <p><a href="tel:+59809641941">+598 096-41-9412</a></p>
                     </div>
                     <div class="contact-info-item">
                         <span class="label">✉️ Email</span>
-                        <p><a href="mailto:ace@ace.com.uy" style="color: var(--primary-green); text-decoration: none; font-weight: 600;">ace@ace.com.uy</a></p>
+                        <p><a href="mailto:ace@ace.com.uy">ace@ace.com.uy</a></p>
                     </div>
                     <div class="contact-info-item">
                         <span class="label">🕐 Horarios</span>
-                        <p>Lunes a Viernes: 8:00 - 18:00<br>Sábados: 9:00 - 13:00<br>Domingos: Cerrado</p>
+                        <p>Lunes a Viernes: 8:00 - 18:00<br>Sábados: 9:00 - 13:00</p>
                     </div>
                 </div>
 
                 <form class="contact-form" action="https://formsubmit.co/ace@ace.com.uy" method="POST">
                     <input type="hidden" name="_captcha" value="false">
-                    <input type="hidden" name="_next" value="https://yourdomain.com/success.html">
                     
                     <div class="form-group">
                         <label for="nombre">Nombre Completo *</label>
@@ -1051,7 +1162,7 @@
         <div class="footer-content">
             <div class="footer-col">
                 <h4>ACE Corporation</h4>
-                <p>Líderes en servicios premium de pulido y plastificado de pisos en Uruguay. Tradición, experiencia y tecnología.</p>
+                <p>Líderes en servicios premium de pulido y plastificado de pisos en Uruguay.</p>
             </div>
             <div class="footer-col">
                 <h4>Servicios</h4>
@@ -1095,11 +1206,11 @@
         </div>
         <div class="chatbot-messages" id="chatbotMessages">
             <div class="message bot">
-                Hola 👋 Soy el asistente de ACE Corporation. ¿Cómo te puedo ayudar hoy?
+                Hola 👋 Soy el asistente de ACE. ¿En qué puedo ayudarte?
             </div>
         </div>
         <div class="chatbot-input-area">
-            <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Escribe tu mensaje..." onkeypress="handleEnter(event)">
+            <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Escribe tu pregunta..." onkeypress="handleEnter(event)">
             <button class="chatbot-send" onclick="sendMessage()">Enviar</button>
         </div>
     </div>
@@ -1119,74 +1230,149 @@
             }
         }
 
-        let conversationHistory = [];
+        // SISTEMA INTELIGENTE - Entiende MILES de variaciones automáticamente 🧠
+        const categorias = {
+            saludo: {
+                palabrasClave: ['hola', 'buenos', 'hey', 'ey', 'qué tal', 'cómo', 'saludos', 'hi'],
+                respuesta: "👋 ¡Hola! Soy el asistente de ACE Corporation. ¿Cómo puedo ayudarte hoy? Pregunta sobre servicios, precios, ubicación, horarios o lo que necesites 😊"
+            },
+            servicios: {
+                palabrasClave: ['servicio', 'ofrecen', 'hacen', 'trabajo', 'especialidad', 'ofrece'],
+                respuesta: "🎯 SERVICIOS QUE OFRECEMOS:\n✓ Pulido Premium\n✓ Plastificado Industrial\n✓ Hidrolaqueado Ecológico\n✓ Instalación de Parquet\n✓ Reparación y Restauración\n✓ Encerado Artesanal\n¿Cuál te interesa?"
+            },
+            pulido: {
+                palabrasClave: ['pulido', 'pulir', 'puliment'],
+                respuesta: "💪 PULIDO PREMIUM:\nEliminamos imperfecciones, arañazos y marcas con equipos especializados de última generación. Restauramos la belleza natural de tu madera.\n⏱️ Tiempo: 1-2 días\n💰 Presupuesto sin costo"
+            },
+            plastificado: {
+                palabrasClave: ['plastificado', 'plastific', 'protección', 'resistente', 'barniz', 'laca'],
+                respuesta: "🛡️ PLASTIFICADO INDUSTRIAL:\nCapas protectoras de polímeros de clase mundial. Máxima resistencia al desgaste, humedad y rayos UV.\n✨ ¡Es nuestro servicio estrella!\n⏱️ Tiempo: 1-3 días\n💰 Presupuesto SIN COSTO\n📞 Contacta: +598 2915-6686"
+            },
+            precio: {
+                palabrasClave: ['costo', 'precio', 'sale', 'cuanto', 'valor', 'tarifa', 'inversión'],
+                respuesta: "💰 PRECIOS Y PRESUPUESTOS:\n¡PRESUPUESTOS SIN COMPROMISO NI COSTO!\nEl precio depende del tamaño y estado de tu piso.\n📱 Contacta para una evaluación profesional:\n☎️ +598 2915-6686\n💬 WhatsApp: +598 096-41-9412\n📧 ace@ace.com.uy"
+            },
+            hidrolaqueado: {
+                palabrasClave: ['hidrolaqu', 'ecológ', 'agua', 'lacado', 'orgánic'],
+                respuesta: "🌿 HIDROLAQUEADO ECOLÓGICO:\nAcabado a base de agua, respetuoso con el ambiente. Mantiene el color natural y proporciona excelente resistencia.\n✨ Ideal para ambientes sensibles\n⏱️ Tiempo: 1-2 días"
+            },
+            parquet: {
+                palabrasClave: ['parquet', 'instalación', 'instalar', 'piso', 'colocación', 'madera'],
+                respuesta: "🪵 INSTALACIÓN DE PARQUET:\nServicio completo de instalación de pisos premium con corte preciso, pegado profesional y acabado impecable.\n📋 Presupuesto sin costo\n📞 ¡Contacta ahora!"
+            },
+            reparacion: {
+                palabrasClave: ['reparación', 'reparar', 'dañado', 'rayado', 'grieta', 'roto', 'arañ', 'desperfect'],
+                respuesta: "🔧 REPARACIÓN Y RESTAURACIÓN:\nReparamos pisos dañados, reemplazamos tablas, rellenamos grietas. Restauramos pisos antiguos a su esplendor original.\n✅ Soluciones profesionales para cualquier daño"
+            },
+            encerado: {
+                palabrasClave: ['encerado', 'brillo', 'clásico', 'cera', 'lustre', 'tradicional'],
+                respuesta: "✨ ENCERADO ARTESANAL:\nAcabado tradicional de lujo con brillo natural. Proporciona calidez y protección.\n🏛️ Ideal para estilos clásicos y tradicionales"
+            },
+            horarios: {
+                palabrasClave: ['horario', 'abierto', 'cierre', 'abre', 'atención', 'hora', 'atienden'],
+                respuesta: "⏰ HORARIOS DE ATENCIÓN:\n📅 Lunes a Viernes: 8:00-18:00\n📅 Sábados: 9:00-13:00\n❌ Domingos: Cerrado\n📞 Llama en horario de atención"
+            },
+            ubicacion: {
+                palabrasClave: ['ubicación', 'dónde', 'dirección', 'localización', 'ubicado', 'ubican', 'quedan', 'lugar', 'domicilio'],
+                respuesta: "📍 UBICACIÓN:\n25 de Mayo 202\nEsquina Maciel\nMontevideo, Uruguay\n(Ciudad Vieja)\n🚗 ¡Visítanos! Estamos en el corazón de Montevideo"
+            },
+            contacto: {
+                palabrasClave: ['teléfono', 'llamar', 'número', 'whatsapp', 'email', 'contacto', 'comunicarse', 'escribir', 'mensaje'],
+                respuesta: "📞 CONTACTO DIRECTO:\n☎️ Teléfono: +598 2915-6686\n💬 WhatsApp: +598 096-41-9412\n📧 Email: ace@ace.com.uy\n🕐 Respuesta garantizada en 24h"
+            },
+            tiempo: {
+                palabrasClave: ['tiempo', 'demora', 'tarda', 'días', 'duración', 'cuánto', 'cuanto'],
+                respuesta: "⏱️ TIEMPOS DE TRABAJO:\n⏸️ Pulido: 1-2 días\n⏸️ Plastificado: 1-3 días\n⏸️ Hidrolaqueado: 1-2 días\n⏸️ Parquet: Varía según tamaño\n(Los tiempos dependen del tamaño del área)"
+            },
+            garantia: {
+                palabrasClave: ['garantía', 'garantizado', 'asegurado', 'satisfacción', 'seguro', 'confiable', 'calidad'],
+                respuesta: "✅ GARANTÍA Y CALIDAD:\nGarantizamos satisfacción en todos nuestros trabajos con acabado profesional de primera calidad.\n🏆 Máxima confiabilidad desde 2001\n¡Tu confianza es nuestra prioridad!"
+            },
+            experiencia: {
+                palabrasClave: ['experiencia', 'años', 'proyectos', 'líderes', 'trayectoria', 'historial', 'desde'],
+                respuesta: "🏆 NUESTRA TRAYECTORIA:\n#1 en plastificaciones de Uruguay\n📅 20+ años de experiencia\n✅ 5000+ proyectos completados\n⭐ 98% satisfacción cliental\n👑 Líderes del mercado desde 2001"
+            },
+            empresa: {
+                palabrasClave: ['empresa', 'quiénes', 'quién', 'ace', 'sobre', 'acerca', 'historia'],
+                respuesta: "🏢 ACERCA DE ACE CORPORATION:\nSomos los LÍDERES indiscutibles en plastificaciones de pisos en Uruguay.\n✓ Fundada en 2001\n✓ Profesionales certificados\n✓ Tecnología de punta\n✓ Compromiso total con tu satisfacción"
+            }
+        };
 
-        async function sendMessage() {
+        // Función para normalizar texto (quita acentos, mayúsculas, etc)
+        function normalizarTexto(texto) {
+            return texto.toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')  // Quita acentos
+                .replace(/[^\w\s]/g, '');  // Quita caracteres especiales
+        }
+
+        function obtenerRespuesta(mensaje) {
+            const msgNormalizado = normalizarTexto(mensaje);
+            const palabras = msgNormalizado.split(/\s+/);
+            
+            // Buscar la categoría que mejor coincida
+            let mejorCoincidencia = null;
+            let maxPuntos = 0;
+
+            for (const [categoria, datos] of Object.entries(categorias)) {
+                let puntos = 0;
+                
+                // Buscar palabras clave en el mensaje
+                for (const palabra of palabras) {
+                    for (const clavePrincipal of datos.palabrasClave) {
+                        const claveNormalizada = normalizarTexto(clavePrincipal);
+                        
+                        // Búsqueda flexible: exacta o contenida
+                        if (palabra === claveNormalizada || 
+                            claveNormalizada.includes(palabra) || 
+                            palabra.includes(claveNormalizada)) {
+                            puntos += 2;
+                        }
+                    }
+                }
+                
+                if (puntos > maxPuntos) {
+                    maxPuntos = puntos;
+                    mejorCoincidencia = categoria;
+                }
+            }
+
+            // Retornar respuesta si encontró coincidencia
+            if (mejorCoincidencia && maxPuntos > 0) {
+                return categorias[mejorCoincidencia].respuesta;
+            }
+            
+            // Respuesta amigable por defecto
+            return "👋 Buena pregunta. Para información más específica o si necesitas un presupuesto, contacta:\n📞 +598 2915-6686\n💬 WhatsApp: +598 096-41-9412\n📧 ace@ace.com.uy\n¡Estamos aquí para ayudarte!";
+        }
+
+        function sendMessage() {
             const input = document.getElementById('chatbotInput');
             const message = input.value.trim();
             
             if (!message) return;
 
-            // Add user message to display
+            // Mostrar mensaje del usuario
             const messagesDiv = document.getElementById('chatbotMessages');
             const userMsgDiv = document.createElement('div');
             userMsgDiv.className = 'message user';
             userMsgDiv.textContent = message;
             messagesDiv.appendChild(userMsgDiv);
 
-            // Clear input
             input.value = '';
 
-            // Add to conversation history
-            conversationHistory.push({ role: 'user', content: message });
-
-            // Show typing indicator
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-            messagesDiv.appendChild(typingDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-            try {
-                // Send to backend API
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: message,
-                        history: conversationHistory
-                    })
-                });
-
-                const data = await response.json();
-                
-                // Remove typing indicator
-                typingDiv.remove();
-
-                // Add bot response
+            // Esperar un poco y mostrar respuesta
+            setTimeout(() => {
+                const botResponse = obtenerRespuesta(message);
                 const botMsgDiv = document.createElement('div');
                 botMsgDiv.className = 'message bot';
-                botMsgDiv.textContent = data.response;
+                botMsgDiv.textContent = botResponse;
                 messagesDiv.appendChild(botMsgDiv);
-
-                // Add to history
-                conversationHistory.push({ role: 'assistant', content: data.response });
-
-            } catch (error) {
-                typingDiv.remove();
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'message bot';
-                errorDiv.textContent = 'Disculpa, tuve un problema. Por favor intenta de nuevo o contáctanos directamente.';
-                messagesDiv.appendChild(errorDiv);
-            }
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, 500);
 
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
-
-        // Initialize chatbot with welcome message
-        window.addEventListener('load', () => {
-            // Chatbot is ready
-        });
     </script>
 </body>
 </html>
