@@ -889,17 +889,184 @@
         }
 
         @media (max-width: 768px) {
+            /* HEADER MÓVIL */
+            header { padding: 1rem 0; }
+            .header-container { padding: 0 1.5rem; gap: 1rem; }
+            .logo-header { height: 50px; }
+            
+            /* NAV MÓVIL */
             nav ul { display: none; }
-            .hero { padding: 4rem 2rem; min-height: 60vh; }
-            .hero h1 { font-size: 2.2rem; }
-            .header-container { padding: 0 2rem; }
-            .container { padding: 0 2rem; }
-            section { padding: 4rem 0; }
-            .section-title { font-size: 2rem; }
+            .cta-header { padding: 0.6rem 1.2rem; font-size: 0.75rem; }
+            
+            /* HERO MÓVIL */
+            .hero { 
+                padding: 3rem 1.5rem; 
+                min-height: 70vh;
+                justify-content: center;
+            }
+            .hero h1 { 
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+            .hero-subtitle { font-size: 0.9rem; }
+            .hero p { 
+                font-size: 1rem;
+                margin-bottom: 1.5rem;
+            }
+            .hero-buttons { 
+                flex-direction: column;
+                width: 100%;
+            }
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                padding: 0.9rem 1.5rem;
+                text-align: center;
+            }
+            
+            /* CONTAINERS MÓVIL */
+            .header-container { padding: 0 1.5rem; }
+            .container { padding: 0 1.5rem; }
+            section { padding: 3rem 0; }
+            
+            /* TÍTULOS MÓVIL */
+            .section-label { font-size: 0.75rem; letter-spacing: 1px; }
+            .section-title { font
+-size: 1.8rem; margin-bottom: 0.8rem; }
+            .section-description { font-size: 0.95rem; margin-bottom: 2rem; }
+            
+            /* SERVICIOS MÓVIL */
+            .services-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            .service-item { 
+                padding: 1.5rem;
+                gap: 1rem;
+                flex-direction: column;
+            }
+            .service-number { 
+                font-size: 2.5rem;
+                min-width: auto;
+            }
+            .service-content h3 { font-size: 1.2rem; }
+            .service-content p { font-size: 0.9rem; }
+            
+            /* GALERÍA MÓVIL */
+            .galeria-grid { 
+                grid-template-columns: 1fr; 
+                gap: 1.5rem;
+            }
+            .galeria-item { 
+                height: 250px;
+                border-radius: 8px;
+            }
+            .galeria-overlay h3 { font-size: 1.3rem; }
+            .galeria-overlay p { font-size: 0.9rem; }
+            
+            /* STATS MÓVIL */
+            .stats-container { 
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+            .stat-box { 
+                padding: 1.5rem 1rem;
+                border-radius: 6px;
+            }
+            .stat-number { font-size: 2.2rem; margin-bottom: 0.3rem; }
+            .stat-label { font-size: 0.8rem; letter-spacing: 0.5px; }
+            
+            /* CONTACTO MÓVIL */
+            .contact-wrapper { 
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .contact-info-item { padding-bottom: 1.5rem; }
+            .contact-form { gap: 1.2rem; }
+            .form-group input,
+            .form-group textarea { 
+                padding: 0.9rem;
+                font-size: 16px;
+            }
+            .btn-submit { 
+                padding: 0.9rem 1.5rem;
+                font-size: 0.85rem;
+            }
+            
+            /* FOOTER MÓVIL */
+            .footer-content { 
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 0 1.5rem;
+                margin-bottom: 2rem;
+            }
+            .footer-col h4 { 
+                font-size: 0.85rem;
+                margin-bottom: 1rem;
+            }
+            .footer-col ul li { margin-bottom: 0.6rem; }
+            .footer-bottom { 
+                padding: 0 1.5rem;
+                padding-top: 1.5rem;
+                font-size: 0.8rem;
+            }
+            
+            /* CHATBOT MÓVIL */
+            .chatbot-toggle { 
+                width: 50px;
+                height: 50px;
+                bottom: 20px;
+                right: 15px;
+                font-size: 1.5rem;
+            }
+            .chatbot-window { 
+                width: calc(100% - 30px);
+                height: 500px;
+                bottom: 80px;
+                right: 15px;
+                left: 15px;
+                border-radius: 10px;
+            }
+            .chatbot-header { padding: 1rem; }
+            .chatbot-header h3 { font-size: 1rem; }
+            .chatbot-messages { 
+                padding: 1rem;
+                gap: 0.8rem;
+            }
+            .message { 
+                padding: 0.7rem 0.9rem;
+                font-size: 0.9rem;
+                max-width: 90%;
+            }
+            .chatbot-input-area { 
+                padding: 1rem;
+                gap: 0.5rem;
+            }
+            .chatbot-input { 
+                padding: 0.7rem;
+                font-size: 0.9rem;
+            }
+            .chatbot-send { 
+                padding: 0.7rem 1rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* EXTRA PEQUEÑO - Celular muy pequeño */
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.5rem; }
+            .hero-subtitle { font-size: 0.8rem; }
+            .hero p { font-size: 0.9rem; }
+            .section-title { font-size: 1.5rem; }
             .stats-container { grid-template-columns: 1fr; }
-            .footer-content { grid-template-columns: 1fr; }
-            .chatbot-window { width: 90%; right: 5%; }
-            .galeria-item { height: 300px; }
+            .stat-number { font-size: 1.8rem; }
+            .logo-header { height: 40px; }
+            nav ul { display: none !important; }
+            .cta-header { display: none; }
+            .hero-buttons { gap: 0.8rem; }
+            .btn-primary, .btn-secondary { 
+                padding: 0.8rem 1.2rem;
+                font-size: 0.8rem;
+            }
+            .service-item { padding: 1.2rem; }
+            .galeria-item { height: 200px; }
         }
     </style>
 </head>
