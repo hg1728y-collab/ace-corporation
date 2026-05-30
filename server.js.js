@@ -1,10 +1,11 @@
 // server.js - Backend para ACE Corporation con Chatbot IA
-// npm install express anthropic dotenv cors
+// VERSIÓN CORREGIDA PARA DIGITALOCEAN
 
 const express = require('express');
 const { Anthropic } = require('@anthropic-ai/sdk');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config();
 
@@ -13,6 +14,9 @@ app.use(cors());
 app.use(express.json());
 
 const client = new Anthropic();
+
+// Servir archivos estáticos desde la carpeta actual
+app.use(express.static(path.join(__dirname)));
 
 // Sistema de contexto para el chatbot
 const SYSTEM_PROMPT = `Eres un asistente de servicio al cliente profesional para ACE Corporation, 
@@ -51,9 +55,7 @@ RESPUESTAS A PREGUNTAS COMUNES:
 
 Mantén respuestas entre 1-3 oraciones. Si es necesario más información, pregunta.`;
 
-// Store conversations (en producción usar base de datos)
-const conversations = new Map();
-
+// API del Chatbot
 app.post('/api/chat', async (req, res) => {
     try {
         const { message, history } = req.body;
@@ -102,8 +104,10 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'ACE Chatbot API funcionando' });
 });
 
-// Servir archivos estáticos
-app.use(express.static('public'));
+// Ruta raíz para index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
