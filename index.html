@@ -890,6 +890,53 @@
             gap: 1rem;
         }
 
+        .chatbot-welcome {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);
+            border-radius: 8px;
+        }
+        
+        .chatbot-welcome h4 {
+            color: var(--primary-green);
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .chatbot-welcome p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chatbot-welcome-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .chatbot-welcome-btn {
+            padding: 0.8rem 1.2rem;
+            border: 1px solid #E0E0E0;
+            background: white;
+            color: var(--text-dark);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            font-family: "Poppins", sans-serif;
+        }
+        
+        .chatbot-welcome-btn:hover {
+            background: var(--green-pale);
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+            transform: translateY(-2px);
+        }
+
         .message {
             padding: 0.8rem 1rem;
             border-radius: 8px;
@@ -1573,7 +1620,7 @@
 
     <!-- CHATBOT -->
     <button class="chatbot-toggle" onclick="toggleChatbot()">
-        🎧 HELP
+        HELP
         <div class="chatbot-popup">
             <h3>¿Necesitas Ayuda?</h3>
             <p>Somos ACE Corporation, #1 en plastificaciones de Uruguay. Nuestro equipo está listo para responder todas tus preguntas sobre nuestros servicios.</p>
@@ -1586,17 +1633,23 @@
 
     <div class="chatbot-window" id="chatbotWindow">
         <div class="chatbot-header">
-            <h3>ACE Assistant</h3>
-            <button class="chatbot-close" onclick="closeChatbot()">✕</button>
+            <h3>ACE Corporation - Soporte</h3>
+            <button class="chatbot-close" onclick="closeChatbot()">×</button>
         </div>
         <div class="chatbot-messages" id="chatbotMessages">
-            <div class="message bot">
-                Hola 👋 Soy el asistente de ACE. ¿En qué puedo ayudarte?
+            <div class="chatbot-welcome">
+                <h4>Bienvenido a ACE</h4>
+                <p>Somos #1 en plastificaciones de Uruguay. Nuestro equipo está listo para ayudarte con todas tus preguntas sobre nuestros servicios.</p>
+                <div class="chatbot-welcome-buttons">
+                    <button class="chatbot-welcome-btn" onclick="sendQuickMessage('Información de servicios'); event.stopPropagation();">Servicios</button>
+                    <button class="chatbot-welcome-btn" onclick="sendQuickMessage('Presupuesto'); event.stopPropagation();">Presupuesto</button>
+                    <button class="chatbot-welcome-btn" onclick="sendQuickMessage('Contacto directo'); event.stopPropagation();">Contacto</button>
+                </div>
             </div>
         </div>
         <div class="chatbot-input-area">
             <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Escribe tu pregunta..." onkeypress="handleEnter(event)">
-            <button class="chatbot-send" onclick="sendMessage()">↑</button>
+            <button class="chatbot-send" onclick="sendMessage()">→</button>
         </div>
     </div>
 
@@ -1727,6 +1780,11 @@
             }
             
             return "👋 Buena pregunta. Para información más específica o si necesitas un presupuesto, contacta:\n📞 +598 2915-6686\n💬 WhatsApp: +598 096-41-9412\n📧 ace@ace.com.uy\n¡Estamos aquí para ayudarte!";
+        }
+
+        function sendQuickMessage(text) {
+            document.getElementById("chatbotInput").value = text;
+            setTimeout(sendMessage, 100);
         }
 
         function sendMessage() {
