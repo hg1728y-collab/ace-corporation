@@ -63,25 +63,19 @@
         .logo-container {
             display: flex;
             align-items: center;
-            gap: 1rem;
             text-decoration: none;
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: var(--primary-green);
         }
 
-        .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 900;
-            font-size: 1.8rem;
-            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.3);
+        .logo-header {
+            height: 70px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));
+            transition: transform 0.3s ease;
+        }
+
+        .logo-container:hover .logo-header {
+            transform: scale(1.05);
         }
 
         nav ul {
@@ -154,28 +148,6 @@
             flex-direction: column;
             justify-content: center;
             align-items: flex-start;
-        }
-
-        .hero-logo {
-            position: absolute;
-            top: 50%;
-            right: 5%;
-            transform: translateY(-50%);
-            opacity: 0.15;
-            z-index: 1;
-            animation: float-logo 6s ease-in-out infinite;
-        }
-
-        .logo-hero {
-            width: 500px;
-            height: 500px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 30px rgba(76, 175, 80, 0.3));
-        }
-
-        @keyframes float-logo {
-            0%, 100% { transform: translateY(-50%) translateX(0px); }
-            50% { transform: translateY(-50%) translateX(20px); }
         }
 
         .hero::before {
@@ -421,89 +393,6 @@
             line-height: 1.8;
         }
 
-        /* ===== STATS ===== */
-        .stats {
-            background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stats::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(76, 175, 80, 0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: rotate-slow 20s linear infinite;
-        }
-
-        @keyframes rotate-slow {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
-            margin-top: 3rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .stat-box {
-            text-align: center;
-            padding: 3rem 2rem;
-            border: 1px solid rgba(76, 175, 80, 0.3);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            overflow: hidden;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-green), var(--green-light));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.4s ease;
-        }
-
-        .stat-box:hover {
-            background: rgba(76, 175, 80, 0.15);
-            transform: translateY(-8px);
-            box-shadow: 0 20px 50px rgba(76, 175, 80, 0.2);
-        }
-
-        .stat-box:hover::before {
-            transform: scaleX(1);
-        }
-
-        .stat-number {
-            font-size: 3.5rem;
-            color: var(--green-accent);
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.8);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
         /* ===== GALERÍA ===== */
         .galeria {
             background: var(--white);
@@ -586,9 +475,87 @@
             color: rgba(255, 255, 255, 0.9);
         }
 
-        @media (max-width: 768px) {
-            .galeria-grid { grid-template-columns: 1fr; }
-            .galeria-item { height: 300px; }
+        /* ===== STATS ===== */
+        .stats {
+            background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: rotate-slow 20s linear infinite;
+        }
+
+        @keyframes rotate-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 3rem 2rem;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-green), var(--green-light));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .stat-box:hover {
+            background: rgba(76, 175, 80, 0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(76, 175, 80, 0.2);
+        }
+
+        .stat-box:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            color: var(--green-accent);
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* ===== CONTACTO ===== */
@@ -757,7 +724,7 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
-        /* ===== CHATBOT SIMPLE ===== */
+        /* ===== CHATBOT ===== */
         .chatbot-toggle {
             position: fixed;
             bottom: 30px;
@@ -913,6 +880,7 @@
 
         @media (max-width: 1024px) {
             .services-grid { grid-template-columns: 1fr; }
+            .galeria-grid { grid-template-columns: 1fr; }
             .stats-container { grid-template-columns: repeat(2, 1fr); }
             .contact-wrapper { grid-template-columns: 1fr; }
             .footer-content { grid-template-columns: repeat(2, 1fr); }
@@ -931,6 +899,7 @@
             .stats-container { grid-template-columns: 1fr; }
             .footer-content { grid-template-columns: 1fr; }
             .chatbot-window { width: 90%; right: 5%; }
+            .galeria-item { height: 300px; }
         }
     </style>
 </head>
@@ -941,11 +910,7 @@
     <header>
         <div class="header-container">
             <a href="#" class="logo-container">
-                <div class="logo-icon">A</div>
-                <div>
-                    <div style="font-size: 1.2rem; color: var(--primary-green);">ACE</div>
-                    <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--gray);">CORPORATION</div>
-                </div>
+                <img src="logo-ace.png" alt="ACE Corporation" class="logo-header">
             </a>
             <nav>
                 <ul>
@@ -961,12 +926,9 @@
 
     <!-- HERO -->
     <section class="hero">
-        <div class="hero-logo">
-            <img src="logo-ace.png" alt="ACE Corporation Logo" class="logo-hero">
-        </div>
         <div class="hero-content">
             <div class="hero-subtitle">#1 en Plastificaciones de Uruguay</div>
-            <h1>Pulido y Plastificado de Pisos</h1>
+            <h1>PULIDO Y PLASTIFICADO DE PISOS</h1>
             <p>Llevamos 20+ años transformando pisos ordinarios en superficies extraordinarias. Tecnología internacional, equipo especializado y garantía de excelencia en cada proyecto.</p>
             <div class="hero-buttons">
                 <a href="#contacto" class="btn-primary">Solicitar Presupuesto</a>
@@ -1034,6 +996,46 @@
         </div>
     </section>
 
+    <!-- GALERÍA -->
+    <section class="galeria" id="galeria">
+        <div class="container">
+            <div class="section-label">Nuestros Trabajos</div>
+            <h2 class="section-title">Proyectos Realizados con Excelencia</h2>
+            <p class="section-description">Estos son algunos de los proyectos que hemos completado con éxito, demostrando nuestro compromiso con la calidad y la satisfacción del cliente.</p>
+
+            <div class="galeria-grid">
+                <div class="galeria-item">
+                    <img src="trabajo-1.jpg" alt="Pulido de piso" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Pulido Premium</h3>
+                        <p>Restauración completa</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-2.jpg" alt="Plastificado industrial" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Plastificado Industrial</h3>
+                        <p>Acabado profesional</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-3.jpg" alt="Resultado final" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Transformación Total</h3>
+                        <p>De dañado a perfecto</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-4.jpg" alt="Parquet instalado" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Parquet Instalado</h3>
+                        <p>Colocación experta</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ESTADÍSTICAS -->
     <section class="stats" id="stats">
         <div class="container">
@@ -1063,45 +1065,7 @@
         </div>
     </section>
 
-    <!-- GALERÍA DE TRABAJOS -->
-    <section class="galeria" id="galeria">
-        <div class="container">
-            <div class="section-label">Nuestros Trabajos</div>
-            <h2 class="section-title">Proyectos Realizados con Excelencia</h2>
-            <p class="section-description">Estos son algunos de los proyectos que hemos completado con éxito, demostrando nuestro compromiso con la calidad y la satisfacción del cliente.</p>
-
-            <div class="galeria-grid">
-                <div class="galeria-item">
-                    <img src="trabajo-1.jpg" alt="Pulido de piso - Proyecto 1" loading="lazy">
-                    <div class="galeria-overlay">
-                        <h3>Pulido Premium</h3>
-                        <p>Restauración completa</p>
-                    </div>
-                </div>
-                <div class="galeria-item">
-                    <img src="trabajo-2.jpg" alt="Plastificado industrial - Proyecto 2" loading="lazy">
-                    <div class="galeria-overlay">
-                        <h3>Plastificado Industrial</h3>
-                        <p>Acabado profesional</p>
-                    </div>
-                </div>
-                <div class="galeria-item">
-                    <img src="trabajo-3.jpg" alt="Resultado final - Proyecto 3" loading="lazy">
-                    <div class="galeria-overlay">
-                        <h3>Transformación Total</h3>
-                        <p>De dañado a perfecto</p>
-                    </div>
-                </div>
-                <div class="galeria-item">
-                    <img src="trabajo-4.jpg" alt="Instalación de parquet - Proyecto 4" loading="lazy">
-                    <div class="galeria-overlay">
-                        <h3>Parquet Instalado</h3>
-                        <p>Colocación experta</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- CONTACTO -->
     <section class="contact" id="contacto">
         <div class="container">
             <div class="section-label">Conecta Con Los Líderes</div>
@@ -1195,10 +1159,9 @@
         </div>
     </footer>
 
-    <!-- CHATBOT TOGGLE -->
+    <!-- CHATBOT -->
     <button class="chatbot-toggle" onclick="toggleChatbot()">💬</button>
 
-    <!-- CHATBOT WINDOW -->
     <div class="chatbot-window" id="chatbotWindow">
         <div class="chatbot-header">
             <h3>ACE Assistant</h3>
@@ -1230,7 +1193,6 @@
             }
         }
 
-        // SISTEMA INTELIGENTE - Entiende MILES de variaciones automáticamente 🧠
         const categorias = {
             saludo: {
                 palabrasClave: ['hola', 'buenos', 'hey', 'ey', 'qué tal', 'cómo', 'saludos', 'hi'],
@@ -1298,31 +1260,27 @@
             }
         };
 
-        // Función para normalizar texto (quita acentos, mayúsculas, etc)
         function normalizarTexto(texto) {
             return texto.toLowerCase()
                 .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')  // Quita acentos
-                .replace(/[^\w\s]/g, '');  // Quita caracteres especiales
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^\w\s]/g, '');
         }
 
         function obtenerRespuesta(mensaje) {
             const msgNormalizado = normalizarTexto(mensaje);
             const palabras = msgNormalizado.split(/\s+/);
             
-            // Buscar la categoría que mejor coincida
             let mejorCoincidencia = null;
             let maxPuntos = 0;
 
             for (const [categoria, datos] of Object.entries(categorias)) {
                 let puntos = 0;
                 
-                // Buscar palabras clave en el mensaje
                 for (const palabra of palabras) {
                     for (const clavePrincipal of datos.palabrasClave) {
                         const claveNormalizada = normalizarTexto(clavePrincipal);
                         
-                        // Búsqueda flexible: exacta o contenida
                         if (palabra === claveNormalizada || 
                             claveNormalizada.includes(palabra) || 
                             palabra.includes(claveNormalizada)) {
@@ -1337,12 +1295,10 @@
                 }
             }
 
-            // Retornar respuesta si encontró coincidencia
             if (mejorCoincidencia && maxPuntos > 0) {
                 return categorias[mejorCoincidencia].respuesta;
             }
             
-            // Respuesta amigable por defecto
             return "👋 Buena pregunta. Para información más específica o si necesitas un presupuesto, contacta:\n📞 +598 2915-6686\n💬 WhatsApp: +598 096-41-9412\n📧 ace@ace.com.uy\n¡Estamos aquí para ayudarte!";
         }
 
@@ -1352,7 +1308,6 @@
             
             if (!message) return;
 
-            // Mostrar mensaje del usuario
             const messagesDiv = document.getElementById('chatbotMessages');
             const userMsgDiv = document.createElement('div');
             userMsgDiv.className = 'message user';
@@ -1361,7 +1316,6 @@
 
             input.value = '';
 
-            // Esperar un poco y mostrar respuesta
             setTimeout(() => {
                 const botResponse = obtenerRespuesta(message);
                 const botMsgDiv = document.createElement('div');
