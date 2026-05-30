@@ -40,7 +40,7 @@
             background-image: radial-gradient(circle, var(--green-accent) 1px, transparent 1px);
             background-size: 50px 50px;
             opacity: 0.03;
-            pointer-events: none;
+            
             z-index: 0;
         }
 
@@ -148,7 +148,7 @@
             color: white;
             padding: 8rem 3rem;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -285,7 +285,7 @@
         section {
             padding: 6rem 0;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
         }
         
         section::after {
@@ -350,7 +350,7 @@
             height: 500px;
             background: radial-gradient(circle, rgba(76, 175, 80, 0.05) 0%, transparent 70%);
             border-radius: 50%;
-            pointer-events: none;
+            
         }
 
         .galeria {
@@ -367,7 +367,7 @@
             height: 600px;
             background: radial-gradient(circle, rgba(76, 175, 80, 0.08) 0%, transparent 70%);
             border-radius: 50%;
-            pointer-events: none;
+            
         }
 
         .contact {
@@ -384,7 +384,7 @@
             height: 400px;
             background: radial-gradient(circle, rgba(76, 175, 80, 0.06) 0%, transparent 70%);
             border-radius: 50%;
-            pointer-events: none;
+            
         }
         
         /* Patrón de puntos decorativos */
@@ -397,7 +397,7 @@
             opacity: 0.03;
             background-image: radial-gradient(circle, var(--primary-green) 1px, transparent 1px);
             background-size: 30px 30px;
-            pointer-events: none;
+            
         }
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -409,19 +409,32 @@
         .service-item {
             display: flex;
             gap: 2.5rem;
-            padding: 2.5rem 2.5rem 2.5rem 3.5rem;
+            padding: 2.5rem 2.5rem 2.5rem 8rem;
             background: linear-gradient(135deg, var(--green-pale) 0%, white 100%);
             border: 1px solid #C8E6C9;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             border-radius: 8px;
+        }
+        
+        .service-item::after {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--green-pale) 0%, white 100%);
+            border-radius: 0 0 0 8px;
+            
+            z-index: 1;
         }
 
         .service-item::before {
             content: '';
             position: absolute;
-            left: 0;
+            left: -8px;
             top: 0;
             width: 4px;
             height: 100%;
@@ -429,6 +442,7 @@
             transform: scaleY(0);
             transform-origin: top;
             transition: transform 0.4s ease;
+            z-index: 2;
         }
 
         .service-item:hover {
@@ -490,7 +504,7 @@
 
         .galeria-item {
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             border-radius: 12px;
             height: 400px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
@@ -551,7 +565,7 @@
             background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
             color: white;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .stats::before {
@@ -586,7 +600,7 @@
             border: 1px solid rgba(76, 175, 80, 0.3);
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(10px);
@@ -795,6 +809,137 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
+        }
+
+        .magnifier-old::before {
+            content: "🔍";
+            position: absolute;
+            font-size: 2.5rem;
+            z-index: 10;
+            
+            
+        }
+
+        .canvas-old {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+        }
+
+        /* ===== LUPA ARRASTRABLE ===== */
+        .zoom-toggle {
+            position: fixed;
+            bottom: 100px;
+            left: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            z-index: 998;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .zoom-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .zoom-widget {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 998;
+            display: none;
+            flex-direction: column;
+            cursor: move;
+            user-select: none;
+        }
+
+        .zoom-widget.active {
+            display: flex;
+        }
+
+        .zoom-header {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .zoom-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .zoom-close:hover {
+            transform: rotate(90deg);
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 1rem;
+            gap: 0.8rem;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #FF9800;
+            background: white;
+            color: #FF9800;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .zoom-btn:hover {
+            background: #FF9800;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .zoom-level {
+            font-weight: 700;
+            color: #FF9800;
+            font-size: 0.95rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .zoom-info {
+            padding: 0.8rem 1rem;
+            font-size: 0.8rem;
+            color: #999;
+            text-align: center;
+            background: #F9F9F9;
+            border-radius: 0 0 12px 12px;
+        }
+
         /* ===== CHATBOT ===== */
         .chatbot-toggle {
             position: fixed;
@@ -833,7 +978,7 @@
             visibility: hidden;
             transform: translateY(20px) translateX(20px);
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            pointer-events: none;
+            
             z-index: 1000;
         }
         
@@ -1472,422 +1617,3 @@
         </div>
     </section>
 
-    <!-- SERVICIOS -->
-    <section class="services" id="servicios">
-        <div class="container">
-            <div class="section-label">Especialidades ACE</div>
-            <h2 class="section-title">Soluciones de Plastificación Líder</h2>
-            <p class="section-description">Como #1 en plastificaciones de Uruguay, ofrecemos soluciones integrales con garantía de máxima durabilidad.</p>
-
-            <div class="services-grid">
-                <div class="service-item">
-                    <div class="service-number">01</div>
-                    <div class="service-content">
-                        <h3>Pulido Premium</h3>
-                        <p>Eliminamos imperfecciones, arañazos y marcas con equipos especializados de última generación, restaurando la belleza natural de tu madera.</p>
-                    </div>
-                </div>
-
-                <div class="service-item">
-                    <div class="service-number">02</div>
-                    <div class="service-content">
-                        <h3>Plastificado Industrial</h3>
-                        <p>Capas protectoras de polímeros de clase mundial que garantizan máxima resistencia al desgaste, humedad y rayos UV.</p>
-                    </div>
-                </div>
-
-                <div class="service-item">
-                    <div class="service-number">03</div>
-                    <div class="service-content">
-                        <h3>Hidrolaqueado Ecológico</h3>
-                        <p>Acabado a base de agua respetuoso con el ambiente que mantiene el color natural mientras proporciona resistencia superior.</p>
-                    </div>
-                </div>
-
-                <div class="service-item">
-                    <div class="service-number">04</div>
-                    <div class="service-content">
-                        <h3>Instalación de Parquet</h3>
-                        <p>Servicio completo de instalación de pisos premium con corte preciso, pegado profesional y acabado impecable.</p>
-                    </div>
-                </div>
-
-                <div class="service-item">
-                    <div class="service-number">05</div>
-                    <div class="service-content">
-                        <h3>Reparación y Restauración</h3>
-                        <p>Reparamos pisos dañados, reemplazamos tablas, rellenamos grietas y restauramos pisos antiguos a su esplendor original.</p>
-                    </div>
-                </div>
-
-                <div class="service-item">
-                    <div class="service-number">06</div>
-                    <div class="service-content">
-                        <h3>Encerado Artesanal</h3>
-                        <p>Acabado tradicional de lujo que proporciona brillo natural, calidez y protección ideal para estilos clásicos.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- GALERÍA -->
-    <section class="galeria" id="galeria">
-        <div class="container">
-            <div class="section-label">Nuestros Trabajos</div>
-            <h2 class="section-title">Proyectos Realizados con Excelencia</h2>
-            <p class="section-description">Estos son algunos de los proyectos que hemos completado con éxito, demostrando nuestro compromiso con la calidad y la satisfacción del cliente.</p>
-
-            <div class="galeria-grid">
-                <div class="galeria-item">
-                    <img src="trabajo-1.jpg" alt="Pulido de piso" loading="lazy">
-                    <div class="galeria-overlay">
-                        <h3>Pulido Premium</h3>
-                        <p>Restauración completa</p>
-                    </div>
-                </div>
-                <div class="galeria-item">
-                    <img src="trabajo-2.jpg" alt="Plastificado industrial" loading="lazy">
-                    <div class="galeria-overlay">
-                        <h3>Plastificado Industrial</h3>
-                        <p>Acabado profesional</p>
-                    </div>
-                </div>
-                <div class="galeria-item">
-                    <img src="trabajo-3.jpg" alt="Resultado final" loading="lazy">
-                    <div class="galeria-overlay">
-                        <h3>Transformación Total</h3>
-                        <p>De dañado a perfecto</p>
-                    </div>
-                </div>
-                <div class="galeria-item">
-                    <img src="trabajo-4.jpg" alt="Parquet instalado" loading="lazy">
-                    <div class="galeria-overlay">
-                        <h3>Parquet Instalado</h3>
-                        <p>Colocación experta</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ESTADÍSTICAS -->
-    <section class="stats" id="stats">
-        <div class="container">
-            <div style="text-align: center; margin-bottom: 3rem;">
-                <div class="section-label" style="color: var(--green-accent);">#1 EN PLASTIFICACIONES</div>
-                <h2 class="section-title" style="color: white;">Líderes del Mercado en Uruguay</h2>
-            </div>
-
-            <div class="stats-container">
-                <div class="stat-box">
-                    <div class="stat-number">20+</div>
-                    <div class="stat-label">Años de Trayectoria</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-number">5000+</div>
-                    <div class="stat-label">Proyectos Realizados</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-number">98%</div>
-                    <div class="stat-label">Satisfacción Cliental</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-number">24h</div>
-                    <div class="stat-label">Respuesta Garantizada</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CONTACTO -->
-    <section class="contact" id="contacto">
-        <div class="container">
-            <div class="section-label">Conecta Con Los Líderes</div>
-            <h2 class="section-title">Contáctanos - #1 en Plastificaciones</h2>
-            <p class="section-description">Eres merecedor de lo mejor. Contacta con nuestro equipo profesional para una consulta sin compromiso.</p>
-
-            <div class="contact-wrapper">
-                <div class="contact-info-group">
-                    <div class="contact-info-item">
-                        <span class="label">📍 Ubicación</span>
-                        <p>25 de Mayo 202<br>Esquina Maciel<br>Montevideo, Uruguay<br>(Ciudad Vieja)</p>
-                    </div>
-                    <div class="contact-info-item">
-                        <span class="label">📞 Teléfono</span>
-                        <p><a href="tel:+59829156686">+598 2915-6686</a></p>
-                    </div>
-                    <div class="contact-info-item">
-                        <span class="label">📱 Celular WhatsApp</span>
-                        <p><a href="tel:+59809641941">+598 096-41-9412</a></p>
-                    </div>
-                    <div class="contact-info-item">
-                        <span class="label">✉️ Email</span>
-                        <p><a href="mailto:ace@ace.com.uy">ace@ace.com.uy</a></p>
-                    </div>
-                    <div class="contact-info-item">
-                        <span class="label">🕐 Horarios</span>
-                        <p>Lunes a Viernes: 8:00 - 18:00<br>Sábados: 9:00 - 13:00</p>
-                    </div>
-                </div>
-
-                <form class="contact-form" action="https://formsubmit.co/ace@ace.com.uy" method="POST">
-                    <input type="hidden" name="_captcha" value="false">
-                    
-                    <div class="form-group">
-                        <label for="nombre">Nombre Completo *</label>
-                        <input type="text" id="nombre" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Correo Electrónico *</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="telefono">Teléfono</label>
-                        <input type="tel" id="telefono" name="telefono">
-                    </div>
-                    <div class="form-group">
-                        <label for="mensaje">Cuéntanos sobre tu proyecto *</label>
-                        <textarea id="mensaje" name="mensaje" required></textarea>
-                    </div>
-                    <button type="submit" class="btn-submit">Enviar Solicitud</button>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-col">
-                <h4>ACE Corporation</h4>
-                <p>Líderes en servicios premium de pulido y plastificado de pisos en Uruguay.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Servicios</h4>
-                <ul>
-                    <li><a href="#servicios">Pulido Premium</a></li>
-                    <li><a href="#servicios">Plastificado</a></li>
-                    <li><a href="#servicios">Hidrolaqueado</a></li>
-                    <li><a href="#servicios">Parquet</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Empresa</h4>
-                <ul>
-                    <li><a href="#servicios">Servicios</a></li>
-                    <li><a href="#stats">Experiencia</a></li>
-                    <li><a href="#contacto">Contacto</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Contacto Directo</h4>
-                <ul>
-                    <li><a href="tel:+59829156686">2915-6686</a></li>
-                    <li><a href="tel:+59809641941">096-41-9412</a></li>
-                    <li><a href="mailto:ace@ace.com.uy">ace@ace.com.uy</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 ACE Corporation. #1 en Plastificaciones de Uruguay.</p>
-        </div>
-    </footer>
-
-    <!-- CHATBOT -->
-    <button class="chatbot-toggle" onclick="toggleChatbot()">
-        HELP
-        <div class="chatbot-popup">
-            <h3>¿Necesitas Ayuda?</h3>
-            <p>Somos ACE Corporation, #1 en plastificaciones de Uruguay. Nuestro equipo está listo para responder todas tus preguntas sobre nuestros servicios.</p>
-            <div class="chatbot-popup-buttons">
-                <button class="chatbot-popup-btn chatbot-popup-btn-primary" onclick="toggleChatbot(); event.stopPropagation();">Iniciar Chat</button>
-                <button class="chatbot-popup-btn chatbot-popup-btn-secondary" onclick="document.getElementById('contacto').scrollIntoView({behavior:'smooth'}); event.stopPropagation();">Contacto</button>
-            </div>
-        </div>
-    </button>
-
-    <div class="chatbot-window" id="chatbotWindow">
-        <div class="chatbot-header">
-            <h3>ACE Corporation - Soporte</h3>
-            <button class="chatbot-close" onclick="closeChatbot()">×</button>
-        </div>
-        <div class="chatbot-messages" id="chatbotMessages">
-            <div class="chatbot-welcome">
-                <h4>Bienvenido a ACE</h4>
-                <p>Somos #1 en plastificaciones de Uruguay. Nuestro equipo está listo para ayudarte con todas tus preguntas sobre nuestros servicios.</p>
-                <div class="chatbot-welcome-buttons">
-                    <button class="chatbot-welcome-btn" onclick="sendQuickMessage('Información de servicios'); event.stopPropagation();">Servicios</button>
-                    <button class="chatbot-welcome-btn" onclick="sendQuickMessage('Presupuesto'); event.stopPropagation();">Presupuesto</button>
-                    <button class="chatbot-welcome-btn" onclick="sendQuickMessage('Contacto directo'); event.stopPropagation();">Contacto</button>
-                </div>
-            </div>
-        </div>
-        <div class="chatbot-input-area">
-            <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Escribe tu pregunta..." onkeypress="handleEnter(event)">
-            <button class="chatbot-send" onclick="sendMessage()">→</button>
-        </div>
-    </div>
-
-    <script>
-        function toggleChatbot() {
-            const chatbot = document.getElementById('chatbotWindow');
-            chatbot.classList.toggle('active');
-            if (chatbot.classList.contains('active')) {
-                document.getElementById('chatbotInput').focus();
-            }
-        }
-
-        function closeChatbot() {
-            const chatbot = document.getElementById('chatbotWindow');
-            chatbot.classList.remove('active');
-        }
-
-        function handleEnter(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
-        const categorias = {
-            saludo: {
-                palabrasClave: ['hola', 'buenos', 'hey', 'ey', 'qué tal', 'cómo', 'saludos', 'hi'],
-                respuesta: "👋 ¡Hola! Soy el asistente de ACE Corporation. ¿Cómo puedo ayudarte hoy? Pregunta sobre servicios, precios, ubicación, horarios o lo que necesites 😊"
-            },
-            servicios: {
-                palabrasClave: ['servicio', 'ofrecen', 'hacen', 'trabajo', 'especialidad', 'ofrece'],
-                respuesta: "🎯 SERVICIOS QUE OFRECEMOS:\n✓ Pulido Premium\n✓ Plastificado Industrial\n✓ Hidrolaqueado Ecológico\n✓ Instalación de Parquet\n✓ Reparación y Restauración\n✓ Encerado Artesanal\n¿Cuál te interesa?"
-            },
-            pulido: {
-                palabrasClave: ['pulido', 'pulir', 'puliment'],
-                respuesta: "💪 PULIDO PREMIUM:\nEliminamos imperfecciones, arañazos y marcas con equipos especializados de última generación. Restauramos la belleza natural de tu madera.\n⏱️ Tiempo: 1-2 días\n💰 Presupuesto sin costo"
-            },
-            plastificado: {
-                palabrasClave: ['plastificado', 'plastific', 'protección', 'resistente', 'barniz', 'laca'],
-                respuesta: "🛡️ PLASTIFICADO INDUSTRIAL:\nCapas protectoras de polímeros de clase mundial. Máxima resistencia al desgaste, humedad y rayos UV.\n✨ ¡Es nuestro servicio estrella!\n⏱️ Tiempo: 1-3 días\n💰 Presupuesto SIN COSTO\n📞 Contacta: +598 2915-6686"
-            },
-            precio: {
-                palabrasClave: ['costo', 'precio', 'sale', 'cuanto', 'valor', 'tarifa', 'inversión'],
-                respuesta: "💰 PRECIOS Y PRESUPUESTOS:\n¡PRESUPUESTOS SIN COMPROMISO NI COSTO!\nEl precio depende del tamaño y estado de tu piso.\n📱 Contacta para una evaluación profesional:\n☎️ +598 2915-6686\n💬 WhatsApp: +598 096-41-9412\n📧 ace@ace.com.uy"
-            },
-            hidrolaqueado: {
-                palabrasClave: ['hidrolaqu', 'ecológ', 'agua', 'lacado', 'orgánic'],
-                respuesta: "🌿 HIDROLAQUEADO ECOLÓGICO:\nAcabado a base de agua, respetuoso con el ambiente. Mantiene el color natural y proporciona excelente resistencia.\n✨ Ideal para ambientes sensibles\n⏱️ Tiempo: 1-2 días"
-            },
-            parquet: {
-                palabrasClave: ['parquet', 'instalación', 'instalar', 'piso', 'colocación', 'madera'],
-                respuesta: "🪵 INSTALACIÓN DE PARQUET:\nServicio completo de instalación de pisos premium con corte preciso, pegado profesional y acabado impecable.\n📋 Presupuesto sin costo\n📞 ¡Contacta ahora!"
-            },
-            reparacion: {
-                palabrasClave: ['reparación', 'reparar', 'dañado', 'rayado', 'grieta', 'roto', 'arañ', 'desperfect'],
-                respuesta: "🔧 REPARACIÓN Y RESTAURACIÓN:\nReparamos pisos dañados, reemplazamos tablas, rellenamos grietas. Restauramos pisos antiguos a su esplendor original.\n✅ Soluciones profesionales para cualquier daño"
-            },
-            encerado: {
-                palabrasClave: ['encerado', 'brillo', 'clásico', 'cera', 'lustre', 'tradicional'],
-                respuesta: "✨ ENCERADO ARTESANAL:\nAcabado tradicional de lujo con brillo natural. Proporciona calidez y protección.\n🏛️ Ideal para estilos clásicos y tradicionales"
-            },
-            horarios: {
-                palabrasClave: ['horario', 'abierto', 'cierre', 'abre', 'atención', 'hora', 'atienden'],
-                respuesta: "⏰ HORARIOS DE ATENCIÓN:\n📅 Lunes a Viernes: 8:00-18:00\n📅 Sábados: 9:00-13:00\n❌ Domingos: Cerrado\n📞 Llama en horario de atención"
-            },
-            ubicacion: {
-                palabrasClave: ['ubicación', 'dónde', 'dirección', 'localización', 'ubicado', 'ubican', 'quedan', 'lugar', 'domicilio'],
-                respuesta: "📍 UBICACIÓN:\n25 de Mayo 202\nEsquina Maciel\nMontevideo, Uruguay\n(Ciudad Vieja)\n🚗 ¡Visítanos! Estamos en el corazón de Montevideo"
-            },
-            contacto: {
-                palabrasClave: ['teléfono', 'llamar', 'número', 'whatsapp', 'email', 'contacto', 'comunicarse', 'escribir', 'mensaje'],
-                respuesta: "📞 CONTACTO DIRECTO:\n☎️ Teléfono: +598 2915-6686\n💬 WhatsApp: +598 096-41-9412\n📧 Email: ace@ace.com.uy\n🕐 Respuesta garantizada en 24h"
-            },
-            tiempo: {
-                palabrasClave: ['tiempo', 'demora', 'tarda', 'días', 'duración', 'cuánto', 'cuanto'],
-                respuesta: "⏱️ TIEMPOS DE TRABAJO:\n⏸️ Pulido: 1-2 días\n⏸️ Plastificado: 1-3 días\n⏸️ Hidrolaqueado: 1-2 días\n⏸️ Parquet: Varía según tamaño\n(Los tiempos dependen del tamaño del área)"
-            },
-            garantia: {
-                palabrasClave: ['garantía', 'garantizado', 'asegurado', 'satisfacción', 'seguro', 'confiable', 'calidad'],
-                respuesta: "✅ GARANTÍA Y CALIDAD:\nGarantizamos satisfacción en todos nuestros trabajos con acabado profesional de primera calidad.\n🏆 Máxima confiabilidad desde 2001\n¡Tu confianza es nuestra prioridad!"
-            },
-            experiencia: {
-                palabrasClave: ['experiencia', 'años', 'proyectos', 'líderes', 'trayectoria', 'historial', 'desde'],
-                respuesta: "🏆 NUESTRA TRAYECTORIA:\n#1 en plastificaciones de Uruguay\n📅 20+ años de experiencia\n✅ 5000+ proyectos completados\n⭐ 98% satisfacción cliental\n👑 Líderes del mercado desde 2001"
-            },
-            empresa: {
-                palabrasClave: ['empresa', 'quiénes', 'quién', 'ace', 'sobre', 'acerca', 'historia'],
-                respuesta: "🏢 ACERCA DE ACE CORPORATION:\nSomos los LÍDERES indiscutibles en plastificaciones de pisos en Uruguay.\n✓ Fundada en 2001\n✓ Profesionales certificados\n✓ Tecnología de punta\n✓ Compromiso total con tu satisfacción"
-            }
-        };
-
-        function normalizarTexto(texto) {
-            return texto.toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^\w\s]/g, '');
-        }
-
-        function obtenerRespuesta(mensaje) {
-            const msgNormalizado = normalizarTexto(mensaje);
-            const palabras = msgNormalizado.split(/\s+/);
-            
-            let mejorCoincidencia = null;
-            let maxPuntos = 0;
-
-            for (const [categoria, datos] of Object.entries(categorias)) {
-                let puntos = 0;
-                
-                for (const palabra of palabras) {
-                    for (const clavePrincipal of datos.palabrasClave) {
-                        const claveNormalizada = normalizarTexto(clavePrincipal);
-                        
-                        if (palabra === claveNormalizada || 
-                            claveNormalizada.includes(palabra) || 
-                            palabra.includes(claveNormalizada)) {
-                            puntos += 2;
-                        }
-                    }
-                }
-                
-                if (puntos > maxPuntos) {
-                    maxPuntos = puntos;
-                    mejorCoincidencia = categoria;
-                }
-            }
-
-            if (mejorCoincidencia && maxPuntos > 0) {
-                return categorias[mejorCoincidencia].respuesta;
-            }
-            
-            return "👋 Buena pregunta. Para información más específica o si necesitas un presupuesto, contacta:\n📞 +598 2915-6686\n💬 WhatsApp: +598 096-41-9412\n📧 ace@ace.com.uy\n¡Estamos aquí para ayudarte!";
-        }
-
-        function sendQuickMessage(text) {
-            document.getElementById("chatbotInput").value = text;
-            setTimeout(sendMessage, 100);
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('chatbotInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-
-            const messagesDiv = document.getElementById('chatbotMessages');
-            const userMsgDiv = document.createElement('div');
-            userMsgDiv.className = 'message user';
-            userMsgDiv.textContent = message;
-            messagesDiv.appendChild(userMsgDiv);
-
-            input.value = '';
-
-            setTimeout(() => {
-                const botResponse = obtenerRespuesta(message);
-                const botMsgDiv = document.createElement('div');
-                botMsgDiv.className = 'message bot';
-                botMsgDiv.textContent = botResponse;
-                messagesDiv.appendChild(botMsgDiv);
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            }, 500);
-
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-    </script>
-</body>
-</html>
