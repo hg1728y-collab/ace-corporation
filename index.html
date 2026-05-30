@@ -207,14 +207,9 @@
             margin-bottom: 1.5rem;
             line-height: 1.1;
             letter-spacing: -1px;
-            animation: slideInLeft 0.8s ease-out 0.2s both, float-subtle 3s ease-in-out infinite;
+            animation: slideInLeft 0.8s ease-out 0.2s both;
             text-transform: uppercase;
             text-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
-        }
-
-        @keyframes float-subtle {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
         }
 
         .hero p {
@@ -1479,7 +1474,7 @@
     <div class="chatbot-window" id="chatbotWindow">
         <div class="chatbot-header">
             <h3>ACE Assistant</h3>
-            <button class="chatbot-close" onclick="toggleChatbot()">✕</button>
+            <button class="chatbot-close" onclick="closeChatbot()">✕</button>
         </div>
         <div class="chatbot-messages" id="chatbotMessages">
             <div class="message bot">
@@ -1499,6 +1494,11 @@
             if (chatbot.classList.contains('active')) {
                 document.getElementById('chatbotInput').focus();
             }
+        }
+
+        function closeChatbot() {
+            const chatbot = document.getElementById('chatbotWindow');
+            chatbot.classList.remove('active');
         }
 
         function handleEnter(event) {
