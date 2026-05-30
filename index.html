@@ -723,25 +723,109 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 60px;
-            height: 60px;
+            padding: 1rem 2rem;
             background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 50px;
             cursor: pointer;
             z-index: 999;
             box-shadow: 0 4px 20px rgba(27, 94, 32, 0.4);
             transition: all 0.3s ease;
             color: white;
-            font-size: 1.8rem;
             border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            position: relative;
         }
 
         .chatbot-toggle:hover {
-            transform: scale(1.1);
+            transform: translateY(-3px);
             box-shadow: 0 8px 30px rgba(27, 94, 32, 0.6);
+        }
+        
+        .chatbot-popup {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            width: 320px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) translateX(20px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .chatbot-toggle:hover .chatbot-popup {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) translateX(0);
+            pointer-events: auto;
+        }
+        
+        .chatbot-popup h3 {
+            color: var(--primary-green);
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .chatbot-popup p {
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+        
+        .chatbot-popup-buttons {
+            display: flex;
+            gap: 0.8rem;
+        }
+        
+        .chatbot-popup-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .chatbot-popup-btn-primary {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.2);
+        }
+        
+        .chatbot-popup-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(27, 94, 32, 0.3);
+        }
+        
+        .chatbot-popup-btn-secondary {
+            background: linear-gradient(135deg, rgba(27, 94, 32, 0.1) 0%, rgba(46, 125, 50, 0.1) 100%);
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+            box-shadow: 0 2px 8px rgba(27, 94, 32, 0.1);
+        }
+        
+        .chatbot-popup-btn-secondary:hover {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
+            color: white;
+            border-color: var(--green-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.2);
         }
 
         .chatbot-window {
@@ -834,42 +918,62 @@
         }
 
         .chatbot-input-area {
-            padding: 1.5rem;
+            padding: 1rem;
             border-top: 1px solid #E8F5E9;
             display: flex;
             gap: 0.8rem;
+            background: white;
+            align-items: center;
         }
 
         .chatbot-input {
             flex: 1;
-            padding: 0.8rem;
-            border: 1px solid #E8F5E9;
-            border-radius: 6px;
+            padding: 0.9rem 1.2rem;
+            border: 1px solid #E0E0E0;
+            border-radius: 25px;
             font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             transition: all 0.3s;
+            background: #F5F5F5;
+            outline: none;
+        }
+        
+        .chatbot-input::placeholder {
+            color: #999;
         }
 
         .chatbot-input:focus {
             outline: none;
             border-color: var(--primary-green);
+            background: white;
             box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.1);
         }
 
         .chatbot-send {
-            background: var(--primary-green);
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--green-light) 100%);
             color: white;
             border: none;
-            padding: 0.8rem 1.2rem;
-            border-radius: 6px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
             cursor: pointer;
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
             transition: all 0.3s;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.3);
         }
 
         .chatbot-send:hover {
-            background: var(--green-light);
             transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(27, 94, 32, 0.4);
+        }
+        
+        .chatbot-send:active {
+            transform: scale(0.95);
         }
 
         @media (max-width: 1024px) {
@@ -1468,7 +1572,17 @@
     </footer>
 
     <!-- CHATBOT -->
-    <button class="chatbot-toggle" onclick="toggleChatbot()">💬</button>
+    <button class="chatbot-toggle" onclick="toggleChatbot()">
+        🎧 HELP
+        <div class="chatbot-popup">
+            <h3>¿Necesitas Ayuda?</h3>
+            <p>Somos ACE Corporation, #1 en plastificaciones de Uruguay. Nuestro equipo está listo para responder todas tus preguntas sobre nuestros servicios.</p>
+            <div class="chatbot-popup-buttons">
+                <button class="chatbot-popup-btn chatbot-popup-btn-primary" onclick="toggleChatbot(); event.stopPropagation();">Iniciar Chat</button>
+                <button class="chatbot-popup-btn chatbot-popup-btn-secondary" onclick="document.getElementById('contacto').scrollIntoView({behavior:'smooth'}); event.stopPropagation();">Contacto</button>
+            </div>
+        </div>
+    </button>
 
     <div class="chatbot-window" id="chatbotWindow">
         <div class="chatbot-header">
@@ -1482,7 +1596,7 @@
         </div>
         <div class="chatbot-input-area">
             <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Escribe tu pregunta..." onkeypress="handleEnter(event)">
-            <button class="chatbot-send" onclick="sendMessage()">Enviar</button>
+            <button class="chatbot-send" onclick="sendMessage()">↑</button>
         </div>
     </div>
 
