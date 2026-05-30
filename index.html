@@ -940,6 +940,310 @@
             border-radius: 0 0 12px 12px;
         }
 
+        /* CLIENTES STRIP */
+        .clientes-section {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .clientes-titulo {
+            text-align: center;
+            color: #1B5E20;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .clientes-strip {
+            background: linear-gradient(90deg, #E8F5E9 0%, white 50%, #E8F5E9 100%);
+            padding: 1.5rem 0;
+            overflow: hidden;
+            border-radius: 10px;
+            border: 1px solid #C8E6C9;
+        }
+
+        .clientes-privados {
+            background: linear-gradient(90deg, #F5F5F5 0%, white 50%, #F5F5F5 100%);
+            border: 1px solid #E0E0E0;
+        }
+
+        .clientes-marquee {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .clientes-content {
+            display: inline-flex;
+            gap: 2rem;
+            animation: scroll-clientes 40s linear infinite;
+            padding: 0 1rem;
+        }
+
+        @keyframes scroll-clientes {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .cliente-name {
+            display: inline-block;
+            font-weight: 600;
+            color: #1B5E20;
+            font-size: 0.95rem;
+            padding: 0 1.5rem;
+            border-right: 2px solid #5AC958;
+            white-space: nowrap;
+        }
+
+        .cliente-name:last-child {
+            border-right: none;
+        }
+
+        .chatbot-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5AC958 0%, #4CAF50 100%);
+            border: none;
+            cursor: pointer;
+            font-size: 2rem;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(90, 201, 88, 0.4);
+            transition: all 0.3s;
+        }
+        .chatbot-toggle:hover { transform: scale(1.15); box-shadow: 0 8px 30px rgba(90, 201, 88, 0.6); }
+        .chatbot-window { position: fixed; bottom: 110px; right: 30px; width: 400px; height: 550px; background: white; border-radius: 15px; box-shadow: 0 10px 50px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 998; }
+        .chatbot-window.active { display: flex; }
+        .chatbot-header { background: linear-gradient(135deg, #5AC958 0%, #4CAF50 100%); color: white; padding: 1.5rem; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; }
+        .chatbot-header h3 { margin: 0; font-size: 1rem; }
+        .chatbot-close { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+        .chatbot-messages { flex: 1; overflow-y: auto; padding: 1.5rem; background: #FAFAFA; display: flex; flex-direction: column; gap: 1rem; }
+        .chatbot-welcome { padding: 1.5rem; text-align: center; background: white; border: 2px solid #E8F5E9; border-radius: 12px; }
+        .chatbot-welcome h4 { color: #1B5E20; font-size: 1.2rem; margin: 0 0 0.8rem 0; }
+        .chatbot-welcome p { color: #555; font-size: 0.9rem; margin: 0 0 1.2rem 0; }
+        .chatbot-welcome-buttons { display: flex; gap: 0.8rem; justify-content: center; }
+        .chatbot-welcome-btn { padding: 0.7rem 1.2rem; border: none; background: #1B5E20; color: white; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: all 0.3s; }
+        .chatbot-welcome-btn:hover { background: #2E7D32; transform: translateY(-2px); }
+        .message { padding: 0.8rem 1.2rem; border-radius: 12px; max-width: 80%; word-wrap: break-word; font-size: 0.9rem; }
+        .message.user { align-self: flex-end; background: #1B5E20; color: white; }
+        .message.bot { align-self: flex-start; background: #E8E8E8; color: #333; }
+        .chatbot-input-area { display: flex; gap: 0.8rem; padding: 1.5rem; background: white; border-top: 1px solid #E0E0E0; border-radius: 0 0 15px 15px; }
+        .chatbot-input { flex: 1; padding: 0.8rem 1rem; border: 1px solid #DDD; border-radius: 25px; font-family: Poppins, sans-serif; font-size: 0.9rem; }
+        .chatbot-input:focus { outline: none; border: 2px solid #5AC958; }
+        .chatbot-send { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #5AC958 0%, #4CAF50 100%); color: white; border: none; cursor: pointer; font-size: 1.2rem; transition: all 0.3s; }
+        .chatbot-send:hover { transform: scale(1.08); }
+
+        /* CHAT BUTTON */
+        .chat-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5AC958 0%, #4CAF50 100%);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(90, 201, 88, 0.4);
+            transition: all 0.3s ease;
+        }
+        .chat-button:hover {
+            transform: scale(1.15);
+            box-shadow: 0 8px 30px rgba(90, 201, 88, 0.6);
+        }
+        .chat-button:active {
+            transform: scale(1.08);
+        }
+
+        /* CHAT WINDOW */
+        .chat-window {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 420px;
+            max-height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.15);
+            display: none;
+            flex-direction: column;
+            z-index: 998;
+            overflow: hidden;
+        }
+        /* CLOSE BUTTON */
+        .chat-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-close:hover {
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .chat-window.active {
+            display: flex;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CHAT CONTAINER */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: #FAFAFA;
+            position: relative;
+        }
+
+        /* WELCOME MESSAGE */
+        .chat-welcome {
+            text-align: center;
+            background: white;
+            padding: 2rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #E8E8E8;
+        }
+        .chat-welcome h3 {
+            color: #1B5E20;
+            font-size: 1.3rem;
+            margin: 0 0 0.8rem 0;
+            font-weight: 700;
+        }
+        .chat-welcome p {
+            color: #666;
+            font-size: 0.95rem;
+            margin: 0 0 1.5rem 0;
+            line-height: 1.5;
+        }
+        .welcome-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .btn-verde {
+            padding: 0.8rem 1.5rem;
+            background: #1B5E20;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-verde:hover {
+            background: #2E7D32;
+            transform: translateY(-2px);
+        }
+        .btn-negro {
+            padding: 0.8rem 1.5rem;
+            background: #2a2a2a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-negro:hover {
+            background: #1a1a1a;
+            transform: translateY(-2px);
+        }
+
+        /* CHAT MESSAGES */
+        .chat-messages {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+        }
+        .chat-msg {
+            padding: 0.9rem 1.2rem;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .user-msg {
+            align-self: flex-end;
+            background: #1B5E20;
+            color: white;
+        }
+        .bot-msg {
+            align-self: flex-start;
+            background: #E8E8E8;
+            color: #333;
+        }
+
+        /* CHAT INPUT */
+        .chat-input-area {
+            display: flex;
+            gap: 0.8rem;
+            padding: 1.5rem;
+            background: white;
+            border-top: 1px solid #E0E0E0;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid #DDD;
+            border-radius: 25px;
+            font-family: Poppins, sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .chat-input:focus {
+            outline: none;
+            border: 2px solid #5AC958;
+            background: #FAFAFA;
+        }
+        .chat-send {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5AC958 0%, #4CAF50 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-send:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(90, 201, 88, 0.3);
+        }
+        .chat-send:active {
+            transform: scale(0.95);
+        }
+
         /* ===== CHATBOT ===== */
         .chatbot-toggle {
             position: fixed;
@@ -1617,3 +1921,367 @@
         </div>
     </section>
 
+    <!-- SERVICIOS -->
+    <section class="services" id="servicios">
+        <div class="container">
+            <div class="section-label">Especialidades ACE</div>
+            <h2 class="section-title">Soluciones de Plastificación Líder</h2>
+            <p class="section-description">Como #1 en plastificaciones de Uruguay, ofrecemos soluciones integrales con garantía de máxima durabilidad.</p>
+
+            <div class="services-grid">
+                <div class="service-item">
+                    <div class="service-number">01</div>
+                    <div class="service-content">
+                        <h3>Pulido Premium</h3>
+                        <p>Eliminamos imperfecciones, arañazos y marcas con equipos especializados de última generación, restaurando la belleza natural de tu madera.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">02</div>
+                    <div class="service-content">
+                        <h3>Plastificado Industrial</h3>
+                        <p>Capas protectoras de polímeros de clase mundial que garantizan máxima resistencia al desgaste, humedad y rayos UV.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">03</div>
+                    <div class="service-content">
+                        <h3>Hidrolaqueado Ecológico</h3>
+                        <p>Acabado a base de agua respetuoso con el ambiente que mantiene el color natural mientras proporciona resistencia superior.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">04</div>
+                    <div class="service-content">
+                        <h3>Instalación de Parquet</h3>
+                        <p>Servicio completo de instalación de pisos premium con corte preciso, pegado profesional y acabado impecable.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">05</div>
+                    <div class="service-content">
+                        <h3>Reparación y Restauración</h3>
+                        <p>Reparamos pisos dañados, reemplazamos tablas, rellenamos grietas y restauramos pisos antiguos a su esplendor original.</p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">06</div>
+                    <div class="service-content">
+                        <h3>Encerado Artesanal</h3>
+                        <p>Acabado tradicional de lujo que proporciona brillo natural, calidez y protección ideal para estilos clásicos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GALERÍA -->
+    <section class="galeria" id="galeria">
+        <div class="container">
+            <div class="section-label">Nuestros Trabajos</div>
+            <h2 class="section-title">Proyectos Realizados con Excelencia</h2>
+            <p class="section-description">Estos son algunos de los proyectos que hemos completado con éxito, demostrando nuestro compromiso con la calidad y la satisfacción del cliente.</p>
+
+            <div class="galeria-grid">
+                <div class="galeria-item">
+                    <img src="trabajo-1.jpg" alt="Pulido de piso" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Pulido Premium</h3>
+                        <p>Restauración completa</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-2.jpg" alt="Plastificado industrial" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Plastificado Industrial</h3>
+                        <p>Acabado profesional</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-3.jpg" alt="Resultado final" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Transformación Total</h3>
+                        <p>De dañado a perfecto</p>
+                    </div>
+                </div>
+                <div class="galeria-item">
+                    <img src="trabajo-4.jpg" alt="Parquet instalado" loading="lazy">
+                    <div class="galeria-overlay">
+                        <h3>Parquet Instalado</h3>
+                        <p>Colocación experta</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ESTADÍSTICAS -->
+    <section class="stats" id="stats">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <div class="section-label" style="color: var(--green-accent);">#1 EN PLASTIFICACIONES</div>
+                <h2 class="section-title" style="color: white;">Líderes del Mercado en Uruguay</h2>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">Años de Trayectoria</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">5000+</div>
+                    <div class="stat-label">Proyectos Realizados</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Satisfacción Cliental</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">24h</div>
+                    <div class="stat-label">Respuesta Garantizada</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section class="contact" id="contacto">
+        <div class="container">
+            <div class="section-label">Conecta Con Los Líderes</div>
+            <h2 class="section-title">Contáctanos - #1 en Plastificaciones</h2>
+            <p class="section-description">Eres merecedor de lo mejor. Contacta con nuestro equipo profesional para una consulta sin compromiso.</p>
+
+            <div class="contact-wrapper">
+                <div class="contact-info-group">
+                    <div class="contact-info-item">
+                        <span class="label">📍 Ubicación</span>
+                        <p>25 de Mayo 202<br>Esquina Maciel<br>Montevideo, Uruguay<br>(Ciudad Vieja)</p>
+                    </div>
+                    <div class="contact-info-item">
+                        <span class="label">📞 Teléfono</span>
+                        <p><a href="tel:+59829156686">+598 2915-6686</a></p>
+                    </div>
+                    <div class="contact-info-item">
+                        <span class="label">📱 Celular WhatsApp</span>
+                        <p><a href="tel:+59809641941">+598 096-41-9412</a></p>
+                    </div>
+                    <div class="contact-info-item">
+                        <span class="label">✉️ Email</span>
+                        <p><a href="mailto:ace@ace.com.uy">ace@ace.com.uy</a></p>
+                    </div>
+                    <div class="contact-info-item">
+                        <span class="label">🕐 Horarios</span>
+                        <p>Lunes a Viernes: 8:00 - 18:00<br>Sábados: 9:00 - 13:00</p>
+                    </div>
+                </div>
+
+                <form class="contact-form" action="https://formsubmit.co/ace@ace.com.uy" method="POST">
+                    <input type="hidden" name="_captcha" value="false">
+                    
+                    <div class="form-group">
+                        <label for="nombre">Nombre Completo *</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Correo Electrónico *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono">
+                    </div>
+                    <div class="form-group">
+                        <label for="mensaje">Cuéntanos sobre tu proyecto *</label>
+                        <textarea id="mensaje" name="mensaje" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">Enviar Solicitud</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <!-- CLIENTES -->
+    <section class="clientes-section">
+        <h2 class="clientes-titulo">Clientes del Estado</h2>
+        <div class="clientes-strip">
+            <div class="clientes-marquee">
+                <div class="clientes-content">
+                    <span class="cliente-name">Ministerio de Transporte</span>
+                    <span class="cliente-name">Museo Histórico Nacional</span>
+                    <span class="cliente-name">Facultad de Psicología</span>
+                    <span class="cliente-name">Banco de Previsión Social</span>
+                    <span class="cliente-name">Ministerio de Economía</span>
+                    <span class="cliente-name">Intendencia Municipal</span>
+                    <span class="cliente-name">Administración de Puertos</span>
+                    <span class="cliente-name">Ministerio de Vivienda</span>
+                    <span class="cliente-name">Banco de Seguros</span>
+                    <span class="cliente-name">Facultad de Derecho</span>
+                    <span class="cliente-name">Palacio Legislativo</span>
+                    <span class="cliente-name">Ministerio de Transporte</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="clientes-section">
+        <h2 class="clientes-titulo">Clientes Privados</h2>
+        <div class="clientes-strip clientes-privados">
+            <div class="clientes-marquee">
+                <div class="clientes-content">
+                    <span class="cliente-name">Colegio Inglés</span>
+                    <span class="cliente-name">Laboratorio BASF</span>
+                    <span class="cliente-name">Inmobiliaria Balvi</span>
+                    <span class="cliente-name">Colegio Saint Andrews</span>
+                    <span class="cliente-name">Embajada de Alemania</span>
+                    <span class="cliente-name">Edificio Notariado</span>
+                    <span class="cliente-name">Colegio Saint Brendans</span>
+                    <span class="cliente-name">PromoFarma SRL</span>
+                    <span class="cliente-name">Algorta Construcciones</span>
+                    <span class="cliente-name">Coordinadora Psicólogos</span>
+                    <span class="cliente-name">A.G.A.D.U.</span>
+                    <span class="cliente-name">Colegio Inglés</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h4>ACE Corporation</h4>
+                <p>Líderes en servicios premium de pulido y plastificado de pisos en Uruguay.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Servicios</h4>
+                <ul>
+                    <li><a href="#servicios">Pulido Premium</a></li>
+                    <li><a href="#servicios">Plastificado</a></li>
+                    <li><a href="#servicios">Hidrolaqueado</a></li>
+                    <li><a href="#servicios">Parquet</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Empresa</h4>
+                <ul>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#stats">Experiencia</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contacto Directo</h4>
+                <ul>
+                    <li><a href="tel:+59829156686">2915-6686</a></li>
+                    <li><a href="tel:+59809641941">096-41-9412</a></li>
+                    <li><a href="mailto:ace@ace.com.uy">ace@ace.com.uy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 ACE Corporation. #1 en Plastificaciones de Uruguay.</p>
+        </div>
+    </footer>
+
+    <!-- CHATBOT BUTTON -->
+    <button class="chat-button" onclick="toggleChat()" title="Chat">💬</button>
+
+    <!-- CHATBOT WINDOW -->
+    <div class="chat-window" id="chatWindow">
+        <button class="chat-close" onclick="toggleChat()">×</button>
+        <div class="chat-container">
+            <!-- WELCOME MESSAGE -->
+            <div class="chat-welcome" id="chatWelcome">
+                <h3>¡Bienvenido a ACE!</h3>
+                <p>Habla con nuestros expertos en plastificaciones</p>
+                <div class="welcome-buttons">
+                    <button class="btn-verde" onclick="startChat()">Iniciar Chat</button>
+                    <button class="btn-negro" onclick="sendMessage('Presupuesto')">Presupuesto</button>
+                </div>
+            </div>
+
+            <!-- MESSAGES AREA -->
+            <div class="chat-messages" id="chatMessages" style="display: none;"></div>
+        </div>
+
+        <!-- INPUT AREA -->
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta..." onkeypress="handleEnter(event)">
+            <button class="chat-send" onclick="sendMessage()">→</button>
+        </div>
+    </div>
+
+    <script>
+        let chatStarted = false;
+
+        function toggleChat() {
+            const chatWindow = document.getElementById("chatWindow");
+            chatWindow.classList.toggle("active");
+            if (chatWindow.classList.contains("active")) {
+                document.getElementById("chatInput").focus();
+            }
+        }
+
+        function startChat() {
+            chatStarted = true;
+            document.getElementById("chatWelcome").style.display = "none";
+            document.getElementById("chatMessages").style.display = "flex";
+            document.getElementById("chatInput").focus();
+        }
+
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        function sendMessage(text) {
+            const input = document.getElementById("chatInput");
+            const message = text || input.value.trim();
+            
+            if (!message) return;
+
+            if (!chatStarted) {
+                startChat();
+            }
+
+            const messagesDiv = document.getElementById("chatMessages");
+            
+            // USER MESSAGE
+            const userMsg = document.createElement("div");
+            userMsg.className = "chat-msg user-msg";
+            userMsg.textContent = message;
+            messagesDiv.appendChild(userMsg);
+
+            input.value = "";
+
+            // BOT RESPONSE
+            setTimeout(() => {
+                const botMsg = document.createElement("div");
+                botMsg.className = "chat-msg bot-msg";
+                
+                if (message.toLowerCase().includes("servicio")) {
+                    botMsg.textContent = "Ofrecemos Pulido, Plastificado, Hidrolaqueado, Parquet y más. ¿Cuál te interesa?";
+                } else if (message.toLowerCase().includes("presupuesto")) {
+                    botMsg.textContent = "¡Presupuestos sin costo! +598 2915-6686 o WhatsApp +598 096-41-9412";
+                } else if (message.toLowerCase().includes("hola") || message.toLowerCase().includes("hey")) {
+                    botMsg.textContent = "¡Hola! Soy el asistente de ACE. ¿Cómo puedo ayudarte?";
+                } else {
+                    botMsg.textContent = "Contacta: +598 2915-6686 o ace@ace.com.uy";
+                }
+                
+                messagesDiv.appendChild(botMsg);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, 500);
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+
+</body>
+</html>
