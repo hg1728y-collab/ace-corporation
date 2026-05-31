@@ -1,11 +1,10 @@
 // server.js - Backend para ACE Corporation con Chatbot IA
-// VERSIÓN CORREGIDA PARA DIGITALOCEAN
+// npm install express anthropic dotenv cors
 
 const express = require('express');
 const { Anthropic } = require('@anthropic-ai/sdk');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const path = require('path');
 
 dotenv.config();
 
@@ -13,10 +12,33 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const client = new Anthropic();
+// ===== HEADERS DE SEGURIDAD =====
+app.use((req, res, next) => {
+    // Content-Security-Policy
+    res.setHeader('Content-Security-Policy', "default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-ancestors 'none';");
+    
+    // X-Frame-Options (protege contra clickjacking)
+    res.setHeader('X-Frame-Options', 'DENY');
+    
+    // Strict-Transport-Security (fuerza HTTPS)
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    
+    // X-Content-Type-Options (previene MIME sniffing)
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    
+    // X-XSS-Protection (extra protección XSS)
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    // Referrer-Policy
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    // Permissions-Policy
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    
+    next();
+});
 
-// Servir archivos estáticos desde la carpeta actual
-app.use(express.static(path.join(__dirname)));
+const client = new Anthropic();
 
 // Sistema de contexto para el chatbot
 const SYSTEM_PROMPT = `Eres un asistente de servicio al cliente profesional para ACE Corporation, 
@@ -55,7 +77,9 @@ RESPUESTAS A PREGUNTAS COMUNES:
 
 Mantén respuestas entre 1-3 oraciones. Si es necesario más información, pregunta.`;
 
-// API del Chatbot
+// Store conversations (en producción usar base de datos)
+const conversations = new Map();
+
 app.post('/api/chat', async (req, res) => {
     try {
         const { message, history } = req.body;
@@ -104,10 +128,8 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'ACE Chatbot API funcionando' });
 });
 
-// Ruta raíz para index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Servir archivos estáticos
+app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

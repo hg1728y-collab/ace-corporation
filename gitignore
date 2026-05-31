@@ -1,0 +1,37 @@
+# Dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Archivos sensibles
+.git/
+.git
+.github/
+.gitignore
+.gitattributes
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+
+# Build
+dist/
+build/
