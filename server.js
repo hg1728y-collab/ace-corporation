@@ -40,7 +40,8 @@ app.use((req, res, next) => {
 
 const client = new Anthropic();
 
-// Sistema de contexto para el chatbot
+// Servir archivos estáticos desde la carpeta actual
+app.use(express.static(__dirname));
 const SYSTEM_PROMPT = `Eres un asistente de servicio al cliente profesional para ACE Corporation, 
 la empresa #1 en plastificaciones de pisos en Uruguay. 
 
@@ -124,12 +125,16 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // Health check
+// Ruta raíz
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'ACE Chatbot API funcionando' });
 });
 
 // Servir archivos estáticos
-app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
