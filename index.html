@@ -94,6 +94,7 @@
             width: auto;
             object-fit: contain;
             transition: transform 0.3s ease;
+            display: block;
         }
 
         .logo-container:hover .logo-header {
@@ -541,7 +542,7 @@
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
             overflow: visible;
-            border-radius: 10px;
+            border-radius: 24px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         
@@ -609,7 +610,7 @@
         .galeria-item {
             position: relative;
             overflow: hidden;
-            border-radius: 12px;
+            border-radius: 0px;
             height: 400px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -628,6 +629,8 @@
             object-fit: cover;
             transition: transform 0.6s ease;
             filter: brightness(1);
+            border-radius: 0;
+            display: block;
         }
 
         .galeria-item:hover img {
@@ -655,7 +658,7 @@
             transition: opacity 0.4s ease;
             text-align: center;
             padding: 2rem;
-            border-radius: 12px;
+            border-radius: 0px;
         }
 
         .galeria-item:hover .galeria-overlay {
@@ -765,9 +768,203 @@
 
         .contact-wrapper {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 4rem;
             margin-top: 3rem;
+        }
+
+        /* CTA FINAL - BARRA DE LLAMADA A ACCIÓN */
+        .sticky-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, 
+                rgba(26, 26, 26, 0.85) 0%,
+                rgba(45, 45, 45, 0.85) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            text-align: center;
+            z-index: 998;
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(76, 175, 80, 0.3),
+                        0 0 40px rgba(76, 175, 80, 0.1);
+            border-top: 2px solid rgba(76, 175, 80, 0.3);
+            opacity: 0;
+            transform: translateY(120px);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            backdrop-filter: blur(20px);
+        }
+
+        .sticky-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(76, 175, 80, 0.05) 50%,
+                transparent 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .sticky-bar.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(120px);
+                filter: blur(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        .sticky-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sticky-text {
+            color: #4CAF50;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin: 0;
+            flex: 1;
+            text-align: left;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.4),
+                         0 0 40px rgba(76, 175, 80, 0.2);
+            position: relative;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                text-shadow: 0 0 20px rgba(76, 175, 80, 0.4),
+                             0 0 40px rgba(76, 175, 80, 0.2);
+            }
+            50% {
+                text-shadow: 0 0 30px rgba(76, 175, 80, 0.6),
+                             0 0 60px rgba(76, 175, 80, 0.3);
+            }
+        }
+
+        .sticky-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .sticky-btn {
+            padding: 0.7rem 1.8rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .sticky-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            transition: left 0.4s ease;
+            z-index: 1;
+        }
+
+        .sticky-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .sticky-btn:hover::before {
+            left: 100%;
+        }
+
+        .sticky-btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .sticky-phone {
+            background: linear-gradient(135deg, #4CAF50 0%, #5AC958 100%);
+            color: white;
+            position: relative;
+        }
+
+        .sticky-phone:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5),
+                        0 0 20px rgba(76, 175, 80, 0.3);
+            background: linear-gradient(135deg, #5AC958 0%, #66D96F 100%);
+        }
+
+        .sticky-phone:active {
+            transform: translateY(-1px);
+        }
+
+        .sticky-whatsapp {
+            background: transparent;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+            position: relative;
+        }
+
+        .sticky-whatsapp::before {
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .sticky-whatsapp:hover {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(90, 201, 88, 0.15) 100%);
+            color: #5AC958;
+            border-color: #5AC958;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4),
+                        0 0 20px rgba(76, 175, 80, 0.2);
+        }
+
+        .sticky-whatsapp:active {
+            transform: translateY(-1px);
         }
 
         .contact-info-group {
@@ -1891,6 +2088,34 @@
                 margin-bottom: 0.5rem;
             }
             
+            /* STICKY BAR TABLET */
+            .sticky-bar {
+                padding: 0.7rem 1.5rem;
+            }
+
+            .sticky-container {
+                flex-direction: column;
+                gap: 0.8rem;
+                text-align: center;
+            }
+
+            .sticky-text {
+                text-align: center;
+                font-size: 0.9rem;
+            }
+
+            .sticky-buttons {
+                width: 100%;
+                gap: 0.8rem;
+                justify-content: center;
+            }
+
+            .sticky-btn {
+                padding: 0.6rem 1.5rem;
+                font-size: 0.8rem;
+                flex: 1;
+            }
+            
             /* CHATBOT MÓVIL */
             .chat-button {
                 width: 60px;
@@ -1981,6 +2206,34 @@
             .btn-submit { 
                 padding: 0.9rem 1.5rem;
                 font-size: 0.85rem;
+            }
+            
+            /* STICKY BAR MOBILE */
+            .sticky-bar {
+                padding: 0.6rem 1rem;
+                bottom: 0;
+            }
+
+            .sticky-container {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+
+            .sticky-text {
+                font-size: 0.8rem;
+                text-align: center;
+                margin-bottom: 0.4rem;
+            }
+
+            .sticky-buttons {
+                width: 100%;
+                gap: 0.6rem;
+            }
+
+            .sticky-btn {
+                padding: 0.55rem 1.2rem;
+                font-size: 0.75rem;
+                flex: 1;
             }
             
             /* FOOTER MÓVIL */
@@ -2470,51 +2723,39 @@
             <div class="contact-wrapper">
                 <div class="contact-info-group">
                     <div class="contact-info-item">
-                        <span class="label">📍 Ubicación</span>
+                        <span class="label">UBICACIÓN</span>
                         <p>25 de Mayo 202<br>Esquina Maciel<br>Montevideo, Uruguay<br>(Ciudad Vieja)</p>
                     </div>
                     <div class="contact-info-item">
-                        <span class="label">📞 Teléfono</span>
+                        <span class="label">TELÉFONO</span>
                         <p><a href="tel:+59829156686">+598 2915-6686</a></p>
                     </div>
                     <div class="contact-info-item">
-                        <span class="label">📱 Celular WhatsApp</span>
+                        <span class="label">CELULAR WHATSAPP</span>
                         <p><a href="tel:+59809641941">+598 096-41-9412</a></p>
                     </div>
                     <div class="contact-info-item">
-                        <span class="label">✉️ Email</span>
+                        <span class="label">EMAIL</span>
                         <p><a href="mailto:ace@ace.com.uy">ace@ace.com.uy</a></p>
                     </div>
                     <div class="contact-info-item">
-                        <span class="label">🕐 Horarios</span>
+                        <span class="label">HORARIOS</span>
                         <p>Lunes a Viernes: 8:00 - 18:00<br>Sábados: 9:00 - 13:00</p>
                     </div>
                 </div>
-
-                <form class="contact-form" action="https://formsubmit.co/ace@ace.com.uy" method="POST">
-                    <input type="hidden" name="_captcha" value="false">
-                    
-                    <div class="form-group">
-                        <label for="nombre">Nombre Completo *</label>
-                        <input type="text" id="nombre" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Correo Electrónico *</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="telefono">Teléfono</label>
-                        <input type="tel" id="telefono" name="telefono">
-                    </div>
-                    <div class="form-group">
-                        <label for="mensaje">Cuéntanos sobre tu proyecto *</label>
-                        <textarea id="mensaje" name="mensaje" required></textarea>
-                    </div>
-                    <button type="submit" class="btn-submit">Enviar Solicitud</button>
-                </form>
             </div>
         </div>
     </section>
+
+    <div class="sticky-bar">
+        <div class="sticky-container">
+            <p class="sticky-text">GENERA TU PRESUPUESTO AHORA</p>
+            <div class="sticky-buttons">
+                <a href="tel:+59829156686" class="sticky-btn sticky-phone">LLAMAR</a>
+                <a href="https://wa.me/59809641941?text=Hola%20ACE%2C%20me%20gustaría%20solicitar%20un%20presupuesto" class="sticky-btn sticky-whatsapp">WHATSAPP</a>
+            </div>
+        </div>
+    </div>
 
     <!-- FOOTER -->
     <!-- CLIENTES -->
@@ -2692,6 +2933,23 @@
 
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
+
+        // STICKY BAR - MOSTRAR DESPUÉS DE GALERÍA (UX ÓPTIMA)
+        const stickyBar = document.querySelector('.sticky-bar');
+        const galeriaSection = document.querySelector('.galeria');
+
+        window.addEventListener('scroll', () => {
+            if (galeriaSection) {
+                const galeriaPosition = galeriaSection.offsetTop + galeriaSection.offsetHeight;
+                const scrollPosition = window.scrollY;
+
+                if (scrollPosition > galeriaPosition - 300) {
+                    stickyBar.classList.add('visible');
+                } else {
+                    stickyBar.classList.remove('visible');
+                }
+            }
+        });
     </script>
 
 </body>
