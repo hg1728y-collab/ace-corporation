@@ -2869,14 +2869,168 @@
 
         let chatHistory = [];
 
+        const responseBank = {
+            insulto: [
+                "No entiendo tu frustración, pero estoy aquí para ayudarte con presupuestos, horarios y servicios de ACE.",
+                "¿Por qué dices eso? No es mi intención molestarte. ¿En qué te puedo ayudar?",
+                "Entiendo que estés molesto. Estoy aquí para asistirte con lo que necesites de ACE.",
+                "No quiero discutir. Si tienes dudas sobre nuestros servicios, estoy para ayudar.",
+                "Respeto tu opinión. ¿Hay algo específico de ACE en lo que pueda ayudarte?"
+            ],
+            presupuesto: [
+                "Presupuestos sin costo. Depende del tamaño y estado del piso. Llamá: 2915-6686.",
+                "¿Necesitas presupuesto? Hacemos evaluaciones sin compromiso. Contactá: 2915-6686 o WhatsApp 096-41-9412.",
+                "Presupuestos personalizados según tu piso. Depende del tipo, tamaño y estado. Llamá para detalles: 2915-6686.",
+                "Quieres saber precio. Varía según: tipo de piso, tamaño, estado actual. Consultá sin costo: 2915-6686.",
+                "Presupuesto gratis y sin obligación. Te asesoramos sobre la mejor opción. Llamá: 2915-6686."
+            ],
+            servicio_general: [
+                "Ofrecemos Pulido, Plastificado, Hidrolaqueado e Instalación de Parquet. ¿Cuál te interesa?",
+                "Nuestros servicios: Pulido de pisos, Plastificado, Hidrolaqueado, y Parquet. ¿Necesitas alguno?",
+                "En ACE hacemos: Pulido profesional, Plastificado duradero, Hidrolaqueado, e Instalación de Parquet. ¿Cuál es tu caso?",
+                "Especializados en Pulido, Plastificado, Hidrolaqueado y Parquet. ¿Qué tipo de piso tienes?"
+            ],
+            pulido: [
+                "Pulido: dejamos el piso como nuevo. Dura 1-2 días. Ideal para pisos rayados o deslucidos.",
+                "El Pulido elimina rayones y devuelve el brillo. Consultá: 2915-6686.",
+                "Pulido profesional: recupera el aspecto original. Tiempo: 1-2 días. Llamá para presupuesto."
+            ],
+            plastificado: [
+                "Plastificado: protege el piso y lo hace brillante. Dura 1-3 días según tamaño.",
+                "El Plastificado protege de arañazos y desgaste. Acabado duradero y estético. Consultá: 2915-6686.",
+                "Plastificado de calidad que dura años. Consulta sin costo: 2915-6686."
+            ],
+            hidrolaqueado: [
+                "Hidrolaqueado: acabado natural y resistente. Ideal si querés ver la veta de la madera.",
+                "Hidrolaqueado ecológico y duradero. Realza la belleza natural del piso. Consultá: 2915-6686."
+            ],
+            parquet: [
+                "Instalación de Parquet: nuevos pisos de madera. Consultá presupuesto sin costo: 2915-6686.",
+                "Instalamos Parquet de calidad. Asesoramiento sobre tipos y precios. Llamá: 2915-6686."
+            ],
+            horario: [
+                "Lunes-Viernes 8:00-18:00, Sábados 9:00-13:00.",
+                "Atendemos: Lunes a Viernes 8AM-6PM, Sábados 9AM-1PM.",
+                "Horario: Entre semana 8:00-18:00, fin de semana sábados 9:00-13:00.",
+                "Abiertos: Lunes-Viernes 8:00 a 18:00, Sábados de 9:00 a 13:00."
+            ],
+            ubicacion: [
+                "Ubicación: 25 de Mayo 202, esquina Maciel, Montevideo.",
+                "Nos encontrás en: 25 de Mayo 202 (esquina Maciel), Ciudad Vieja, Montevideo.",
+                "Dirección: 25 de Mayo 202, Maciel, Montevideo. Fácil estacionamiento.",
+                "Estamos en 25 de Mayo 202 esquina Maciel. ¿Cómo llegás? Consultá."
+            ],
+            contacto: [
+                "Llamá: 2915-6686 | WhatsApp: 096-41-9412 | Email: ace@ace.com.uy",
+                "Contactanos: Teléfono 2915-6686 / WhatsApp 096-41-9412 / Email ace@ace.com.uy",
+                "Comunicáte: Tel 2915-6686 o WhatsApp 096-41-9412. Email: ace@ace.com.uy",
+                "Formas de contacto: Llamá 2915-6686, WhatsApp 096-41-9412, o email ace@ace.com.uy"
+            ],
+            saludo: [
+                "Hola, soy el asistente de ACE. ¿Necesitas presupuesto, horario, servicios o ubicación?",
+                "Bienvenido a ACE. ¿En qué te puedo ayudar hoy?",
+                "Hola. Estoy aquí para ayudarte con Pulido, Plastificado, Hidrolaqueado o Parquet.",
+                "Hola. ¿Qué servicio de ACE te interesa consultar?",
+                "¡Hola! Soy el asistente de ACE Corporation. ¿Cómo te puedo ayudar?"
+            ],
+            no_entiendo: [
+                "No entiendí bien. ¿Preguntás por presupuesto, horario, servicio o ubicación de ACE?",
+                "Disculpa, no capté. ¿Es sobre presupuestos, horarios o nuestros servicios?",
+                "No quedó claro. Preguntá sobre presupuesto, horario, servicios o dónde estamos.",
+                "No te entiendo. ¿Necesitás algo sobre ACE? Presupuesto, horario, servicios...",
+                "Disculpa. ¿Es consulta sobre Pulido, Plastificado, Hidrolaqueado o Parquet?"
+            ],
+            frustacion: [
+                "Entiendo que sea difícil contactar. Llamá directamente: 2915-6686 o WhatsApp 096-41-9412.",
+                "Siento la frustración. El equipo de ACE te atiende mejor por teléfono: 2915-6686.",
+                "Tenés razón, a veces es más rápido hablar directo. Llamá: 2915-6686.",
+                "Entiendo tu impaciencia. Contactá directo al 2915-6686 para una respuesta más rápida."
+            ],
+            experiencia: [
+                "20+ años en el rubro. 5000+ proyectos completados. 98% satisfacción.",
+                "ACE desde 2001. Expertos en pisos con miles de clientes satisfechos.",
+                "Más de 20 años trabajando. Confianza de miles de familias uruguayas.",
+                "Fundada en 2001. Somos especialistas con décadas de experiencia."
+            ],
+            fuera_scope: [
+                "Solo puedo ayudarte con presupuestos, horarios, servicios de ACE (Pulido, Plastificado, Hidrolaqueado, Parquet) y ubicación.",
+                "No puedo asistir con eso. Me especializo en servicios de ACE. ¿Necesitás algo sobre pisos?",
+                "Ese tema no es mi especialidad. Estoy para ayudarte con Pulido, Plastificado, Hidrolaqueado o Parquet."
+            ]
+        };
+
+        function detectInsult(text) {
+            const normalized = normalizeText(text);
+            const insults = ['idiota', 'tonto', 'boludo', 'pelotudo', 'estupido', 'burro', 'imbecil', 'pendejo', 'basura', 'vos sos', 'che vos'];
+            return insults.some(word => normalized.includes(word));
+        }
+
+        function detectFrustration(text) {
+            const normalized = normalizeText(text);
+            const frustratedWords = ['no funciona', 'no puedo', 'imposible', 'cansado', 'harto', 'molesta', 'lento', 'nunca responden'];
+            return frustratedWords.some(word => normalized.includes(word));
+        }
+
+        function getRandomResponse(category) {
+            const responses = responseBank[category];
+            if (!responses) return responseBank.no_entiendo[0];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
         function botFallback(message) {
-            const m = message.toLowerCase();
-            if (m.includes("servicio")) return "Ofrecemos Pulido, Plastificado, Hidrolaqueado, Parquet y más. ¿Cuál te interesa?";
-            if (m.includes("presupuesto") || m.includes("precio") || m.includes("cotiza")) return "Presupuestos sin costo. Llamá al 2915-6686 o WhatsApp 096-41-9412.";
-            if (m.includes("hola") || m.includes("hey") || m.includes("buenas")) return "Hola, soy el asistente de ACE. ¿En qué te puedo ayudar?";
-            if (m.includes("horario") || m.includes("hora")) return "Lunes a Viernes 8:00-18:00 y Sábados 9:00-13:00.";
-            if (m.includes("direccion") || m.includes("ubica") || m.includes("donde")) return "25 de Mayo 202 esquina Maciel, Ciudad Vieja, Montevideo.";
-            return "Contactanos: 2915-6686 o ace@ace.com.uy";
+            const m = normalizeText(message);
+            
+            // DETECTAR INSULTOS
+            if (detectInsult(m)) {
+                return getRandomResponse('insulto');
+            }
+            
+            // DETECTAR FRUSTRACIÓN
+            if (detectFrustration(m)) {
+                return getRandomResponse('frustracion');
+            }
+            
+            // DETECTAR OUT OF SCOPE
+            if (isOutOfScope(m)) {
+                return getRandomResponse('fuera_scope');
+            }
+            
+            // DETECTAR INTENCIONES ESPECÍFICAS
+            if (m.includes('pulido')) return getRandomResponse('pulido');
+            if (m.includes('plastificado')) return getRandomResponse('plastificado');
+            if (m.includes('hidrolaqueado')) return getRandomResponse('hidrolaqueado');
+            if (m.includes('parquet')) return getRandomResponse('parquet');
+            
+            if (m.includes('presupuesto') || m.includes('precio') || m.includes('costo') || m.includes('cuanto cuesta') || m.includes('valor')) {
+                return getRandomResponse('presupuesto');
+            }
+            
+            if (m.includes('horario') || m.includes('hora') || m.includes('cuando') || m.includes('abierto') || m.includes('cierra') || m.includes('atienden')) {
+                return getRandomResponse('horario');
+            }
+            
+            if (m.includes('donde') || m.includes('ubicacion') || m.includes('direccion') || m.includes('localidad') || m.includes('encuentran')) {
+                return getRandomResponse('ubicacion');
+            }
+            
+            if (m.includes('llamar') || m.includes('contactar') || m.includes('telefono') || m.includes('whatsapp') || m.includes('email') || m.includes('comunicar')) {
+                return getRandomResponse('contacto');
+            }
+            
+            if (m.includes('experiencia') || m.includes('años') || m.includes('proyectos') || m.includes('confianza') || m.includes('satisfaccion')) {
+                return getRandomResponse('experiencia');
+            }
+            
+            if (m.includes('servicio') && !m.includes('presupuesto')) {
+                return getRandomResponse('servicio_general');
+            }
+            
+            if (m.includes('hola') || m.includes('hey') || m.includes('buenas') || m.includes('buenos') || m.includes('hi')) {
+                return getRandomResponse('saludo');
+            }
+            
+            // DEFAULT
+            return getRandomResponse('no_entiendo');
         }
 
         async function sendMessage(text) {
@@ -2909,11 +3063,21 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ message, history: chatHistory })
                 });
-                if (!res.ok) throw new Error("HTTP " + res.status);
+                
                 const data = await res.json();
-                reply = (data && data.response) ? data.response : botFallback(message);
+                
+                if (res.status === 429) {
+                    // Rate limit
+                    reply = "Estás enviando demasiados mensajes. Espera 1 minuto antes de continuar.";
+                } else if (res.status === 403) {
+                    // IP bloqueada
+                    reply = "Tu IP ha sido bloqueada por comportamiento abusivo. Contacta: ace@ace.com.uy";
+                } else if (res.ok) {
+                    reply = (data && data.response) ? data.response : botFallback(message);
+                } else {
+                    throw new Error("HTTP " + res.status);
+                }
             } catch (e) {
-                // Sin servidor Node activo (archivo estático): respuesta local de respaldo
                 reply = botFallback(message);
             }
 

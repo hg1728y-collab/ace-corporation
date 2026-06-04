@@ -38,81 +38,338 @@ app.use((req, res, next) => {
     next();
 });
 
-const client = new Anthropic();
+// ===== DDOS PROTECTION =====
+const DDOS_THRESHOLD = 50; // requests
+const DDOS_WINDOW = 10000; // 10 segundos
+const DDOS_BAN_DURATION = 86400000; // 24 horas
+
+function checkDDoS(ip) {
+    if (!ipBehavior.has(ip)) {
+        ipBehavior.set(ip, { 
+            messageCount: 0, 
+            insultos: 0, 
+            lastMessage: Date.now(), 
+            bloqueado: false,
+            requestTimes: [],
+            ddosBloqueado: false,
+            ddosBannedAt: null
+        });
+    }
+    
+    const behavior = ipBehavior.get(ip);
+    const now = Date.now();
+    
+    // Check DDoS ban duration
+    if (behavior.ddosBloqueado && now - behavior.ddosBannedAt >= DDOS_BAN_DURATION) {
+        behavior.ddosBloqueado = false;
+        behavior.requestTimes = [];
+        console.log(`✅ IP ${ip} desbloqueada (DDoS ban expirado)`);
+    }
+    
+    if (behavior.ddosBloqueado) {
+        return { isDDoS: true, reason: 'IP bloqueada por DDoS' };
+    }
+    
+    // Track request times
+    behavior.requestTimes.push(now);
+    behavior.requestTimes = behavior.requestTimes.filter(t => now - t < DDOS_WINDOW);
+    
+    // Detect DDoS pattern
+    if (behavior.requestTimes.length > DDOS_THRESHOLD) {
+        behavior.ddosBloqueado = true;
+        behavior.ddosBannedAt = now;
+        console.error(`🔴 DDOS DETECTADO: IP ${ip} (${behavior.requestTimes.length} req en 10s) - BLOQUEADA 24H`);
+        return { isDDoS: true, reason: `Demasiadas requests (${behavior.requestTimes.length}/${DDOS_THRESHOLD})` };
+    }
+    
+    return { isDDoS: false };
+}
+
+// ===== RATE LIMITING + IP BANNING =====
+const ipBehavior = new Map(); // { ip: { messageCount, insultos, lastMessage, bloqueado } }
+const MAX_MESSAGES_PER_MINUTE = 10;
+const MAX_INSULTS_BEFORE_BAN = 5;
+const BAN_DURATION_MS = 3600000; // 1 hora
+
+function getClientIp(req) {
+    return req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress;
+}
+
+function isIPBlocked(ip) {
+    const behavior = ipBehavior.get(ip);
+    if (!behavior) return false;
+    if (behavior.bloqueado && Date.now() - behavior.bannedAt < BAN_DURATION_MS) {
+        return true;
+    }
+    if (behavior.bloqueado && Date.now() - behavior.bannedAt >= BAN_DURATION_MS) {
+        behavior.bloqueado = false;
+        behavior.insultos = 0;
+        behavior.messageCount = 0;
+    }
+    return false;
+}
+
+function updateIPBehavior(ip, messageLength, isInsult) {
+    if (!ipBehavior.has(ip)) {
+        ipBehavior.set(ip, { messageCount: 0, insultos: 0, lastMessage: Date.now(), bloqueado: false });
+    }
+    const behavior = ipBehavior.get(ip);
+    const now = Date.now();
+
+    // Reset contador cada minuto
+    if (now - behavior.lastMessage > 60000) {
+        behavior.messageCount = 0;
+    }
+
+    behavior.messageCount++;
+    behavior.lastMessage = now;
+
+    if (isInsult) {
+        behavior.insultos++;
+        console.warn(`⚠️ IP ${ip}: insulto #${behavior.insultos}`);
+        if (behavior.insultos >= MAX_INSULTS_BEFORE_BAN) {
+            behavior.bloqueado = true;
+            behavior.bannedAt = now;
+            console.error(`🚫 IP ${ip} BLOQUEADA por ${MAX_INSULTS_BEFORE_BAN}+ insultos`);
+        }
+    }
+
+    return {
+        messageCount: behavior.messageCount,
+        isRateLimited: behavior.messageCount > MAX_MESSAGES_PER_MINUTE,
+        isBlocked: behavior.bloqueado
+    };
+}
+
+// ===== NORMALIZACIÓN Y DETECCIÓN DE INTENT =====
+function normalizeMessage(text) {
+    // Reemplazar números por letras comunes (typos)
+    const replacements = {
+        '0': 'o',
+        '1': 'i',
+        '3': 'e',
+        '4': 'a',
+        '5': 's',
+        '7': 't',
+        '8': 'b',
+        '9': 'g'
+    };
+    let normalized = text.toLowerCase().trim();
+    for (const [num, letter] of Object.entries(replacements)) {
+        normalized = normalized.replace(new RegExp(num, 'g'), letter);
+    }
+    // Eliminar espacios múltiples
+    normalized = normalized.replace(/\s+/g, ' ');
+    return normalized;
+}
+
+function detectIntent(text) {
+    const normalized = normalizeMessage(text);
+    
+    const intents = {
+        presupuesto: ['presupuesto', 'precio', 'costo', 'cuanto cuesta', 'valor', 'cotiza'],
+        servicio: ['servicio', 'pulido', 'plastificado', 'hidrolaqueado', 'parquet', 'reparacion'],
+        horario: ['horario', 'hora', 'abierto', 'cierra', 'atienden', 'cuando'],
+        ubicacion: ['ubicacion', 'donde', 'direccion', 'localidad', 'encuentran'],
+        contacto: ['llamar', 'contactar', 'telefono', 'whatsapp', 'email', 'comunicar']
+    };
+    
+    for (const [intent, keywords] of Object.entries(intents)) {
+        if (keywords.some(kw => normalized.includes(kw))) {
+            return intent;
+        }
+    }
+    return null;
+}
+
+function isOutOfScope(text) {
+    const normalized = normalizeMessage(text);
+    
+    // Palabras clave que indican fuera de scope
+    const outOfScopeKeywords = [
+        'futbol', 'futbol', 'politica', 'politico', 'chiste', 'broma', 'receta', 'cocina',
+        'matematica', 'codigo', 'programar', 'python', 'javascript', 'juego', 'video',
+        'musica', 'cancion', 'pelicula', 'cine', 'clima', 'tiempo', 'noticias',
+        'bitcoin', 'crypto', 'bolsa', 'acciones', 'amor', 'relacion', 'novio',
+        'viaje', 'turismo', 'hotel', 'restaurante', 'comida', 'pizza', 'pizza',
+        'medicina', 'doctor', 'enfermedad', 'sintoma', 'covid', 'vacuna',
+        'dependencia', 'adiccion', 'droga'
+    ];
+    
+    return outOfScopeKeywords.some(keyword => normalized.includes(keyword));
+}
+
+function getOutOfScopeResponse() {
+    return "Solo puedo ayudarte con presupuestos, horarios, servicios (Pulido, Plastificado, Hidrolaqueado, Parquet) y ubicación de ACE. ¿Necesitas alguno de estos?";
+}
 
 // Servir archivos estáticos desde la carpeta actual
 app.use(express.static(__dirname));
-const SYSTEM_PROMPT = `Eres un asistente de servicio al cliente profesional para ACE Corporation, 
-la empresa #1 en plastificaciones de pisos en Uruguay. 
+const SYSTEM_PROMPT = `Eres un asistente de servicio al cliente para ACE Corporation, 
+empresa especializada en plastificaciones de pisos en Uruguay.
 
-INFORMACIÓN SOBRE ACE:
-- Fundada: 2001
-- Servicios: Pulido, Plastificado, Hidrolaqueado, Instalación de Parquet, Reparación
+INFORMACIÓN OFICIAL (NUNCA INVENTAR):
 - Ubicación: 25 de Mayo 202, Esquina Maciel, Montevideo
 - Teléfono: +598 2915-6686
-- Celular/WhatsApp: +598 096-41-9412
+- WhatsApp: +598 096-41-9412
 - Email: ace@ace.com.uy
 - Horarios: Lunes-Viernes 8:00-18:00, Sábados 9:00-13:00
-- Proyectos completados: 5000+
-- Años de experiencia: 20+
-- Satisfacción: 98%
+- Servicios: Pulido, Plastificado, Hidrolaqueado, Parquet
+- Años: desde 2001 (20+ años experiencia)
 
-INSTRUCCIONES:
-1. Sé amable, profesional y conciso
-2. Responde preguntas sobre servicios, ubicación, horarios, precios
-3. Haz preguntas para entender el problema del cliente:
-   - ¿Qué tipo de piso tiene? (madera, parquet, etc)
-   - ¿Cuál es el tamaño aproximado del área?
-   - ¿Cuál es el estado actual? (nuevo, dañado, rayado, etc)
-   - ¿Qué servicio le interesa? (pulido, plastificado, etc)
-   - ¿Cuándo lo necesita?
-4. Basado en sus respuestas, sugiere el servicio más apropiado
-5. Invita al cliente a llenar el formulario o contactar directamente
-6. Si el cliente tiene preguntas complejas, sugiere un contacto directo
+REGLAS INMUTABLES:
+1. Si recibes texto con typos (presupuest0, neces1t0), interpreta la intención correctamente
+2. Si no sabes algo, di "No tengo esa información. Llamá al 2915-6686"
+3. NUNCA especules precios, dates exactas, o teléfonos adicionales
+4. Responde máximo 2 oraciones
+5. Sé amable y profesional
 
-RESPUESTAS A PREGUNTAS COMUNES:
-- Presupuesto: "Hacemos presupuestos sin compromiso. Depende del tamaño y estado del piso."
-- Tiempo: "Pulido: 1-2 días. Plastificado: 1-3 días. Consulta según tu urgencia."
-- Garantía: "Garantizamos satisfacción en todos nuestros trabajos."
-- Precio: "Presupuesto sin costo. Contacta para detalles específicos."
-
-Mantén respuestas entre 1-3 oraciones. Si es necesario más información, pregunta.`;
+MANEJO DE INTENCIONES:
+- Presupuesto/Precio: "Hacemos presupuestos SIN costo. Depende del tamaño y estado del piso. Llamá: 2915-6686"
+- Servicio: Pregunta tipo de piso, tamaño aproximado, estado actual
+- Horario: "Lunes-Viernes 8:00-18:00, Sábados 9:00-13:00"
+- Ubicación: "25 de Mayo 202, esquina Maciel, Montevideo"
+- Contacto: Ofrece teléfono o WhatsApp`;
 
 // Store conversations (en producción usar base de datos)
 const conversations = new Map();
 
+// ===== GARBAGE COLLECTION DE IPS =====
+setInterval(() => {
+    const now = Date.now();
+    let cleaned = 0;
+    for (const [ip, behavior] of ipBehavior.entries()) {
+        if (now - behavior.lastMessage > 86400000) { // 24 horas
+            ipBehavior.delete(ip);
+            cleaned++;
+        }
+    }
+    if (cleaned > 0) {
+        console.log(`🧹 Limpieza de IPs: ${cleaned} IPs antiguas removidas`);
+    }
+}, 3600000); // Cada hora
+
 app.post('/api/chat', async (req, res) => {
+    const clientIp = getClientIp(req);
+    
+    // CHECK DDOS PRIMERO (antes que todo)
+    const ddosCheck = checkDDoS(clientIp);
+    if (ddosCheck.isDDoS) {
+        console.error(`🚫 DDoS blocked: ${clientIp}`);
+        return res.status(403).json({
+            error: 'Bloqueado por seguridad',
+            message: 'Tu IP ha sido bloqueada por actividad sospechosa. Intenta más tarde.'
+        });
+    }
+    
     try {
-        const { message, history } = req.body;
         
+        // VALIDAR INPUTS
         if (!message || !message.trim()) {
             return res.status(400).json({ error: 'Mensaje vacío' });
         }
-
-        // Crear conversación con historial
-        const messages = history.map(msg => ({
-            role: msg.role,
-            content: msg.content
-        }));
-
-        console.log('📨 Mensaje del usuario:', message);
-        console.log('📋 Historial:', messages.length, 'mensajes');
-
-        // Llamar a Claude
-        const response = await client.messages.create({
-            model: 'claude-3-5-sonnet-20241022',
-            max_tokens: 300,
-            system: SYSTEM_PROMPT,
-            messages: messages
-        });
-
-        const botResponse = response.content[0].text;
         
-        console.log('✅ Respuesta del bot:', botResponse);
+        if (!Array.isArray(history)) {
+            history = [];
+        }
+        
+        // Limitar tamaño de mensaje
+        if (message.length > 1000) {
+            return res.status(400).json({ error: 'Mensaje demasiado largo (máx 1000 caracteres)' });
+        }
+        
+        // Limitar historial
+        if (history.length > 20) {
+            history = history.slice(-20);
+        }
+
+        // DETECTAR INSULTOS
+        const normalized = normalizeMessage(message);
+        const isInsult = detectInsult(normalized);
+        
+        // VALIDAR IP (bloqueada, rate limit)
+        if (isIPBlocked(clientIp)) {
+            console.warn(`🚫 Acceso denegado a IP bloqueada: ${clientIp}`);
+            return res.status(403).json({
+                error: 'IP bloqueada por comportamiento abusivo',
+                message: 'Tu IP ha sido bloqueada temporalmente. Contacta: ace@ace.com.uy'
+            });
+        }
+
+        const ipStatus = updateIPBehavior(clientIp, message.length, isInsult);
+        
+        if (ipStatus.isRateLimited) {
+            console.warn(`⏱️ Rate limit para IP ${clientIp}: ${ipStatus.messageCount} mensajes en 1 min`);
+            return res.status(429).json({
+                error: 'Demasiados mensajes',
+                message: 'Máximo 10 mensajes por minuto. Espera un poco.',
+                retryAfter: 60
+            });
+        }
+
+        console.log(`📨 IP ${clientIp} | Original: "${message}"`);
+        console.log(`📝 Normalizado: "${normalized}" | Insulto: ${isInsult}`);
+
+        const intent = detectIntent(normalized);
+
+        // BLOQUEAR out-of-scope PRECOZMENTE sin gastar tokens
+        if (isOutOfScope(normalized)) {
+            console.log(`🚫 Out of scope: "${message}"`);
+            return res.json({
+                response: getOutOfScopeResponse(),
+                status: 'out_of_scope',
+                intent: null
+            });
+        }
+
+        // Crear conversación con historial (validado)
+        const messages = history
+            .filter(msg => msg && msg.role && msg.content && typeof msg.content === 'string')
+            .map(msg => ({
+                role: msg.role === 'user' || msg.role === 'assistant' ? msg.role : 'user',
+                content: msg.content.trim().slice(0, 500) // Max 500 chars por msg
+            }));
+
+        let userMessage = message;
+        if (intent) {
+            userMessage = `[INTENT: ${intent}] ${message}`;
+        }
+        messages.push({ role: 'user', content: userMessage });
+
+        // Llamar a Claude con timeout (30s)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        
+        let botResponse;
+        try {
+            const response = await client.messages.create({
+                model: 'claude-3-5-sonnet-20241022',
+                max_tokens: 150,
+                system: SYSTEM_PROMPT,
+                messages: messages
+            });
+            botResponse = response.content[0].text;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+        
+        // VALIDAR salida (rechazar alucinaciones)
+        if (!validateResponse(botResponse)) {
+            console.warn('⚠️ Alucinación detectada, usando fallback');
+            botResponse = "No tengo esa información. Llamá al 2915-6686 para consultas personalizadas.";
+        }
+        
+        console.log(`✅ Respuesta: "${botResponse}"`);
+        console.log(`📊 Tokens: ${response.usage.output_tokens} | IP: ${clientIp}`);
 
         res.json({
             response: botResponse,
-            status: 'success'
+            status: 'success',
+            intent: intent,
+            rateLimit: {
+                remaining: Math.max(0, MAX_MESSAGES_PER_MINUTE - ipStatus.messageCount),
+                resetIn: 60
+            }
         });
 
     } catch (error) {
