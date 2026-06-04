@@ -47,14 +47,14 @@
         /* ===== HEADER ===== */
         header {
             background: #FFFFFF;
-            padding: 1.5rem 0;
+            padding: 1.2rem 0;
             position: sticky;
             top: 0;
             z-index: 1000;
-            border-bottom: 2px solid #E0E0E0;
+            border-bottom: 1px solid #F0F0F0;
             backdrop-filter: blur(10px);
             background-color: #FFFFFF;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
         .header-container {
@@ -100,7 +100,7 @@
             transition: all 0.3s ease;
             position: relative;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         nav a::before {
@@ -125,29 +125,33 @@
         .cta-header {
             background: linear-gradient(135deg, #5AC958 0%, #4CAF50 100%);
             color: white;
-            padding: 0.8rem 2rem;
+            padding: 0.75rem 2.2rem;
             text-decoration: none;
             font-weight: 700;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
             font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            border-radius: 4px;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+            letter-spacing: 1.2px;
+            border-radius: 6px;
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.25);
             white-space: nowrap;
+            border: none;
+            cursor: pointer;
         }
 
         .cta-header:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(76, 175, 80, 0.35);
+            background: linear-gradient(135deg, #6BC967 0%, #5AC958 100%);
         }
 
         /* ===== HERO ===== */
         .hero {
-            background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: white;
-            padding: 8rem 3rem;
+            padding: 9rem 3rem 8rem;
             position: relative;
+            overflow: hidden;
             overflow: visible;
             min-height: 100vh;
             display: flex;
@@ -240,18 +244,19 @@
             padding: 1.2rem 2.8rem;
             text-decoration: none;
             font-weight: 700;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.2px;
             font-size: 0.9rem;
-            border-radius: 4px;
-            border: 2px solid var(--primary-green);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            border-radius: 6px;
+            border: none;
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.35);
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(76, 175, 80, 0.45);
+            background: linear-gradient(135deg, #6BC967 0%, #5AC958 100%);
         }
 
         .btn-secondary {
@@ -260,18 +265,20 @@
             padding: 1.2rem 2.8rem;
             text-decoration: none;
             font-weight: 700;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
             border: 2px solid white;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.2px;
             font-size: 0.9rem;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         .btn-secondary:hover {
-            background: white;
-            color: var(--primary-green);
-            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #5AC958;
+            color: #5AC958;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(90, 201, 88, 0.3);
         }
 
         .container {
@@ -512,13 +519,14 @@
         .service-item {
             display: flex;
             gap: 2.5rem;
-            padding: 2.5rem 2.5rem 2.5rem 8rem;
+            padding: 2.8rem 2.8rem 2.8rem 8rem;
             background: white;
-            border: 1px solid #E0E0E0;
+            border: 1px solid #F0F0F0;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
             overflow: visible;
-            border-radius: 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         
         .service-item::after {
@@ -550,9 +558,9 @@
 
         .service-item:hover {
             border-color: var(--primary-green);
-            box-shadow: 0 20px 50px rgba(76, 175, 80, 0.15);
-            transform: translateY(-8px);
-            background: #F8F8F8;
+            box-shadow: 0 12px 35px rgba(27, 94, 32, 0.12);
+            transform: translateY(-6px);
+            background: #FAFAFA;
         }
 
         .service-item:hover::before {
@@ -819,7 +827,7 @@
             font-family: 'Poppins', sans-serif;
             font-size: 1rem;
             transition: all 0.3s ease;
-            border-radius: 4px;
+            border-radius: 8px;
         }
 
         .form-group input:focus,
@@ -846,7 +854,7 @@
             letter-spacing: 1.5px;
             font-size: 0.9rem;
             margin-top: 0.5rem;
-            border-radius: 4px;
+            border-radius: 8px;
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
         }
 
@@ -1155,15 +1163,15 @@
             font-size: 2rem;
             cursor: pointer;
             z-index: 999;
-            box-shadow: 0 4px 20px rgba(90, 201, 88, 0.4);
+            box-shadow: 0 8px 25px rgba(90, 201, 88, 0.4);
             transition: all 0.3s ease;
         }
         .chat-button:hover {
-            transform: scale(1.15);
-            box-shadow: 0 8px 30px rgba(90, 201, 88, 0.6);
+            transform: scale(1.12);
+            box-shadow: 0 12px 35px rgba(90, 201, 88, 0.5);
         }
         .chat-button:active {
-            transform: scale(1.08);
+            transform: scale(1.05);
         }
 
         /* CHAT WINDOW */
