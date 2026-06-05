@@ -3056,37 +3056,42 @@
             messagesDiv.appendChild(typing);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-            let reply;
+            let reply = null;
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000); // 10s máximo
+
             try {
                 const res = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message, history: chatHistory })
+                    body: JSON.stringify({ message, history: chatHistory }),
+                    signal: controller.signal
                 });
-                
-                const data = await res.json();
-                
+
                 if (res.status === 429) {
-                    // Rate limit
-                    reply = "Estás enviando demasiados mensajes. Espera 1 minuto antes de continuar.";
+                    reply = "Estás enviando demasiados mensajes. Esperá un minuto antes de continuar.";
                 } else if (res.status === 403) {
-                    // IP bloqueada
-                    reply = "Tu IP ha sido bloqueada por comportamiento abusivo. Contacta: ace@ace.com.uy";
+                    reply = "Tu acceso fue bloqueado por seguridad. Contactá: 2915-6686 o ace@ace.com.uy";
                 } else if (res.ok) {
+                    let data = null;
+                    try { data = await res.json(); } catch (_) { data = null; }
                     reply = (data && data.response) ? data.response : botFallback(message);
                 } else {
-                    throw new Error("HTTP " + res.status);
+                    reply = botFallback(message);
                 }
             } catch (e) {
+                // Timeout, sin servidor Node, o error de red -> respuesta local
                 reply = botFallback(message);
+            } finally {
+                clearTimeout(timeout);
+                typing.remove();
             }
 
-            typing.remove();
             const botMsg = document.createElement("div");
             botMsg.className = "chat-msg bot-msg";
-            botMsg.textContent = reply;
+            botMsg.textContent = reply || "Disculpá, tuve un problema para responder. Llamanos al 2915-6686 o WhatsApp 096-41-9412.";
             messagesDiv.appendChild(botMsg);
-            chatHistory.push({ role: "assistant", content: reply });
+            chatHistory.push({ role: "assistant", content: botMsg.textContent });
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
