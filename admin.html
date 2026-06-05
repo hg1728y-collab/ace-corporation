@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>ACE · Panel de Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #070b07;
+        --panel: #0e140e;
+        --panel-2: #121a12;
+        --border: #1d2a1d;
+        --green: #5AC958;
+        --green-dim: #3a8a38;
+        --text: #d7e4d7;
+        --text-dim: #6f8a6f;
+        --red: #ff4d42;
+        --amber: #ffc043;
+        --blue: #4aa8ff;
+        --mono: 'IBM Plex Mono', monospace;
+        --display: 'Sora', sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 1.5;
+        background-image:
+            radial-gradient(circle at 15% 10%, rgba(90,201,88,0.06), transparent 40%),
+            radial-gradient(circle at 85% 90%, rgba(90,201,88,0.04), transparent 40%),
+            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
+        min-height: 100vh;
+    }
+
+    /* ===== LOGIN ===== */
+    #login {
+        position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+        background: var(--bg); z-index: 1000;
+    }
+    .login-box {
+        background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+        padding: 2.5rem; width: 90%; max-width: 380px;
+        box-shadow: 0 0 60px rgba(90,201,88,0.08), inset 0 1px 0 rgba(90,201,88,0.1);
+    }
+    .login-box h1 {
+        font-family: var(--display); font-size: 1.4rem; margin-bottom: 0.3rem;
+        color: var(--green); letter-spacing: -0.02em;
+    }
+    .login-box .sub { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 1.8rem; }
+    .login-box input {
+        width: 100%; padding: 0.9rem 1rem; background: var(--bg); border: 1px solid var(--border);
+        border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 0.95rem;
+        margin-bottom: 1rem; transition: border-color 0.2s;
+    }
+    .login-box input:focus { outline: none; border-color: var(--green); }
+    .login-box button {
+        width: 100%; padding: 0.9rem; background: var(--green); color: #07120a; border: none;
+        border-radius: 8px; font-family: var(--mono); font-weight: 700; font-size: 0.9rem;
+        cursor: pointer; letter-spacing: 0.05em; text-transform: uppercase; transition: all 0.2s;
+    }
+    .login-box button:hover { background: #6fe06d; box-shadow: 0 0 20px rgba(90,201,88,0.4); }
+    .login-error { color: var(--red); font-size: 0.8rem; margin-top: 0.8rem; min-height: 1rem; }
+
+    /* ===== APP ===== */
+    #app { display: none; max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+    header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding-bottom: 1.2rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+        flex-wrap: wrap; gap: 1rem;
+    }
+    .brand { display: flex; align-items: center; gap: 0.9rem; }
+    .brand .dot {
+        width: 10px; height: 10px; border-radius: 50%; background: var(--green);
+        box-shadow: 0 0 12px var(--green); animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+    .brand h1 { font-family: var(--display); font-size: 1.25rem; letter-spacing: -0.02em; }
+    .brand span { color: var(--green); }
+    .header-meta { display: flex; gap: 1.5rem; align-items: center; font-size: 0.8rem; color: var(--text-dim); flex-wrap: wrap; }
+    .header-meta b { color: var(--text); font-weight: 600; }
+    .live-badge {
+        display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.7rem;
+        background: rgba(90,201,88,0.1); border: 1px solid var(--green-dim); border-radius: 20px;
+        color: var(--green); font-size: 0.7rem; font-weight: 600;
+    }
+    .logout-btn {
+        padding: 0.4rem 0.9rem; background: transparent; border: 1px solid var(--border);
+        color: var(--text-dim); border-radius: 6px; font-family: var(--mono); font-size: 0.75rem;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ===== STATS GRID ===== */
+    .stats-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.9rem; margin-bottom: 1.5rem;
+    }
+    .stat-card {
+        background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+        padding: 1.1rem; position: relative; overflow: hidden; transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--green-dim); }
+    .stat-card .label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; font-family: var(--display); line-height: 1; }
+    .stat-card.danger .value { color: var(--red); }
+    .stat-card.warn .value { color: var(--amber); }
+    .stat-card.ok .value { color: var(--green); }
+    .stat-card .accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--green); opacity: 0.5; }
+    .stat-card.danger .accent { background: var(--red); }
+    .stat-card.warn .accent { background: var(--amber); }
+
+    /* ===== LAYOUT ===== */
+    .grid-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+    .panel {
+        background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .panel-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); background: var(--panel-2);
+    }
+    .panel-head h2 { font-family: var(--display); font-size: 0.95rem; font-weight: 700; }
+    .panel-head .count { font-size: 0.75rem; color: var(--text-dim); }
+    .panel-body { max-height: 460px; overflow-y: auto; }
+    .panel-body::-webkit-scrollbar { width: 8px; }
+    .panel-body::-webkit-scrollbar-track { background: var(--bg); }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ===== FILTROS ===== */
+    .filters { display: flex; gap: 0.4rem; padding: 0.8rem 1.2rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+    .filter-btn {
+        padding: 0.3rem 0.7rem; background: var(--bg); border: 1px solid var(--border);
+        color: var(--text-dim); border-radius: 5px; font-family: var(--mono); font-size: 0.7rem;
+        cursor: pointer; transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: var(--green-dim); color: var(--text); }
+    .filter-btn.active { background: var(--green); color: #07120a; border-color: var(--green); font-weight: 600; }
+
+    /* ===== LOG ENTRIES ===== */
+    .log-entry {
+        display: grid; grid-template-columns: 70px 90px 1fr; gap: 0.8rem; align-items: start;
+        padding: 0.7rem 1.2rem; border-bottom: 1px solid rgba(29,42,29,0.5); font-size: 0.78rem;
+    }
+    .log-entry:hover { background: var(--panel-2); }
+    .log-time { color: var(--text-dim); font-size: 0.7rem; }
+    .log-type {
+        font-size: 0.65rem; font-weight: 600; text-transform: uppercase; padding: 0.15rem 0.4rem;
+        border-radius: 4px; text-align: center; letter-spacing: 0.03em; white-space: nowrap;
+    }
+    .log-type.request { background: rgba(74,168,255,0.12); color: var(--blue); }
+    .log-type.message { background: rgba(90,201,88,0.12); color: var(--green); }
+    .log-type.ddos { background: rgba(255,77,66,0.18); color: var(--red); }
+    .log-type.block { background: rgba(255,77,66,0.12); color: var(--red); }
+    .log-type.ratelimit { background: rgba(255,192,67,0.12); color: var(--amber); }
+    .log-type.insult { background: rgba(255,192,67,0.12); color: var(--amber); }
+    .log-type.error { background: rgba(255,77,66,0.18); color: var(--red); }
+    .log-type.outofscope { background: rgba(111,138,111,0.15); color: var(--text-dim); }
+    .log-detail { color: var(--text); word-break: break-word; }
+    .log-detail .ip { color: var(--green); }
+    .log-detail .meta { color: var(--text-dim); font-size: 0.72rem; }
+
+    /* ===== IP TABLE ===== */
+    .ip-row {
+        padding: 0.85rem 1.2rem; border-bottom: 1px solid rgba(29,42,29,0.5);
+        display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .ip-row:hover { background: var(--panel-2); }
+    .ip-row.blocked { background: rgba(255,77,66,0.05); }
+    .ip-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .ip-addr { font-weight: 600; color: var(--green); font-size: 0.82rem; }
+    .ip-geo { color: var(--text-dim); font-size: 0.72rem; }
+    .ip-stats { display: flex; gap: 0.8rem; font-size: 0.7rem; color: var(--text-dim); flex-wrap: wrap; }
+    .ip-stats b { color: var(--text); }
+    .ip-actions { display: flex; gap: 0.4rem; }
+    .badge-blocked { background: var(--red); color: #fff; font-size: 0.62rem; padding: 0.15rem 0.5rem; border-radius: 10px; font-weight: 600; }
+    .badge-ddos { background: #7a1a14; color: #ffb3ad; font-size: 0.62rem; padding: 0.15rem 0.5rem; border-radius: 10px; font-weight: 600; }
+    .mini-btn {
+        padding: 0.25rem 0.6rem; border-radius: 5px; font-family: var(--mono); font-size: 0.68rem;
+        cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text-dim); transition: all 0.15s;
+    }
+    .mini-btn.unblock:hover { border-color: var(--green); color: var(--green); }
+    .mini-btn.block:hover { border-color: var(--red); color: var(--red); }
+
+    .msg-entry { padding: 0.8rem 1.2rem; border-bottom: 1px solid rgba(29,42,29,0.5); font-size: 0.78rem; }
+    .msg-entry:hover { background: var(--panel-2); }
+    .msg-user { color: var(--text); margin-bottom: 0.3rem; }
+    .msg-user::before { content: "▶ "; color: var(--green); }
+    .msg-bot { color: var(--text-dim); padding-left: 1rem; border-left: 2px solid var(--border); }
+    .msg-meta { font-size: 0.68rem; color: var(--green-dim); margin-top: 0.4rem; }
+
+    .empty { padding: 3rem 1.2rem; text-align: center; color: var(--text-dim); font-size: 0.8rem; }
+    .toast {
+        position: fixed; bottom: 1.5rem; right: 1.5rem; padding: 0.9rem 1.3rem;
+        background: var(--panel); border: 1px solid var(--green); border-radius: 8px;
+        color: var(--green); font-size: 0.82rem; z-index: 2000; transform: translateY(120px);
+        transition: transform 0.3s; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.error { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+    <div class="login-box">
+        <h1>ACE<span>·</span>CTRL</h1>
+        <p class="sub">Panel de control — acceso restringido</p>
+        <input type="text" id="usr" placeholder="Usuario" autocomplete="username" onkeypress="if(event.key==='Enter')doLogin()">
+        <input type="password" id="pw" placeholder="Contraseña" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()">
+        <button onclick="doLogin()">Acceder</button>
+        <div class="login-error" id="loginError"></div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="app">
+    <header>
+        <div class="brand">
+            <span class="dot"></span>
+            <h1>ACE<span> ·</span> Panel de Control</h1>
+        </div>
+        <div class="header-meta">
+            <span class="live-badge"><span class="dot" style="width:6px;height:6px;"></span> EN VIVO</span>
+            <span>Usuario: <b id="meUser">—</b> <span id="meRole" style="color:var(--green);"></span></span>
+            <span>Uptime: <b id="uptime">—</b></span>
+            <span>IPs activas: <b id="activeIPs">—</b></span>
+            <button class="logout-btn" onclick="logout()">Salir</button>
+        </div>
+    </header>
+
+    <!-- STATS -->
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="grid-2">
+        <!-- EVENT LOG -->
+        <div class="panel">
+            <div class="panel-head">
+                <h2>Actividad en vivo</h2>
+                <span class="count" id="logCount">0 eventos</span>
+            </div>
+            <div class="filters" id="logFilters">
+                <button class="filter-btn active" data-type="all" onclick="setFilter('all')">Todos</button>
+                <button class="filter-btn" data-type="message" onclick="setFilter('message')">Mensajes</button>
+                <button class="filter-btn" data-type="ddos" onclick="setFilter('ddos')">DDoS</button>
+                <button class="filter-btn" data-type="block" onclick="setFilter('block')">Bloqueos</button>
+                <button class="filter-btn" data-type="ratelimit" onclick="setFilter('ratelimit')">Rate Limit</button>
+                <button class="filter-btn" data-type="insult" onclick="setFilter('insult')">Insultos</button>
+                <button class="filter-btn" data-type="error" onclick="setFilter('error')">Errores</button>
+            </div>
+            <div class="panel-body" id="logBody"></div>
+        </div>
+
+        <!-- IPs -->
+        <div class="panel">
+            <div class="panel-head">
+                <h2>Conexiones por IP</h2>
+                <span class="count" id="ipCount">0 IPs</span>
+            </div>
+            <div class="panel-body" id="ipBody"></div>
+        </div>
+    </div>
+
+    <!-- MENSAJES DEL CHATBOT -->
+    <div class="panel" id="panelMessages">
+        <div class="panel-head">
+            <h2>Conversaciones del chatbot</h2>
+            <span class="count" id="msgCount">0 mensajes</span>
+        </div>
+        <div class="panel-body" id="msgBody"></div>
+    </div>
+
+    <!-- GESTIÓN DE USUARIOS (solo con permiso manage_users) -->
+    <div class="panel" id="panelUsers" style="display:none; margin-top:1.2rem;">
+        <div class="panel-head">
+            <h2>Usuarios y permisos</h2>
+            <button class="mini-btn" style="border-color:var(--green); color:var(--green);" onclick="openUserModal()">+ Crear usuario</button>
+        </div>
+        <div class="panel-body" id="usersBody"></div>
+    </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div id="userModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1500; align-items:center; justify-content:center;">
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:2rem; width:92%; max-width:440px; max-height:90vh; overflow-y:auto;">
+        <h2 id="userModalTitle" style="font-family:var(--display); color:var(--green); margin-bottom:1.2rem;">Crear usuario</h2>
+        <input type="text" id="umUser" placeholder="Nombre de usuario" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:0.8rem;">
+        <input type="password" id="umPass" placeholder="Contraseña (mín 6)" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:0.8rem;">
+        <label style="font-size:0.75rem; color:var(--text-dim); display:block; margin-bottom:0.4rem;">Rol (define permisos base)</label>
+        <select id="umRole" onchange="applyRoleTemplate()" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:1rem;"></select>
+        <label style="font-size:0.75rem; color:var(--text-dim); display:block; margin-bottom:0.5rem;">Permisos específicos</label>
+        <div id="umPerms" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.3rem;"></div>
+        <div style="display:flex; gap:0.6rem;">
+            <button onclick="saveUser()" style="flex:1; padding:0.8rem; background:var(--green); color:#07120a; border:none; border-radius:8px; font-family:var(--mono); font-weight:700; cursor:pointer;">Guardar</button>
+            <button onclick="closeUserModal()" style="flex:1; padding:0.8rem; background:transparent; border:1px solid var(--border); color:var(--text-dim); border-radius:8px; font-family:var(--mono); cursor:pointer;">Cancelar</button>
+        </div>
+        <div id="umError" style="color:var(--red); font-size:0.8rem; margin-top:0.8rem; min-height:1rem;"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    let token = sessionStorage.getItem('ace_admin_token') || null;
+    let myPermissions = [];
+    let usersData = null;
+    let editingUser = null;
+    let currentFilter = 'all';
+    let refreshTimer = null;
+
+    async function doLogin() {
+        const username = document.getElementById('usr').value.trim();
+        const pw = document.getElementById('pw').value;
+        const errEl = document.getElementById('loginError');
+        errEl.textContent = '';
+        try {
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password: pw })
+            });
+            const data = await res.json();
+            if (res.ok && data.token) {
+                token = data.token;
+                myPermissions = data.permissions || [];
+                sessionStorage.setItem('ace_admin_token', token);
+                sessionStorage.setItem('ace_admin_perms', JSON.stringify(myPermissions));
+                sessionStorage.setItem('ace_admin_user', data.username);
+                sessionStorage.setItem('ace_admin_role', data.role);
+                document.getElementById('meUser').textContent = data.username;
+                document.getElementById('meRole').textContent = '(' + data.role + ')';
+                showApp();
+            } else {
+                errEl.textContent = data.error || 'Error de acceso';
+            }
+        } catch (e) {
+            errEl.textContent = 'No se pudo conectar al servidor';
+        }
+    }
+
+    function logout() {
+        token = null;
+        myPermissions = [];
+        sessionStorage.clear();
+        clearInterval(refreshTimer);
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('login').style.display = 'flex';
+        document.getElementById('pw').value = '';
+        document.getElementById('usr').value = '';
+    }
+
+    function applyPermissions() {
+        const has = p => myPermissions.includes(p);
+        document.getElementById('panelMessages').style.display = has('view_messages') ? '' : 'none';
+        document.getElementById('panelUsers').style.display = has('manage_users') ? '' : 'none';
+    }
+
+    function showApp() {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('meUser').textContent = sessionStorage.getItem('ace_admin_user') || '—';
+        document.getElementById('meRole').textContent = '(' + (sessionStorage.getItem('ace_admin_role') || '') + ')';
+        applyPermissions();
+        refreshAll();
+        refreshTimer = setInterval(refreshAll, 5000);
+    }
+
+    async function api(path) {
+        const res = await fetch(path, { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.status === 401) { logout(); throw new Error('Sesión expirada'); }
+        return res.json();
+    }
+
+    async function refreshAll() {
+        try {
+            const tasks = [loadStats(), loadLogs(), loadIPs()];
+            if (myPermissions.includes('view_messages')) tasks.push(loadMessages());
+            if (myPermissions.includes('manage_users')) tasks.push(loadUsers());
+            await Promise.all(tasks);
+        } catch (e) { /* sesión expirada manejada en api() */ }
+    }
+
+    const STAT_CARDS = [
+        { key: 'totalRequests', label: 'Requests', cls: '' },
+        { key: 'totalMessages', label: 'Mensajes', cls: 'ok' },
+        { key: 'totalErrors', label: 'Errores', cls: 'danger' },
+        { key: 'totalDDoS', label: 'Intentos DDoS', cls: 'danger' },
+        { key: 'blockedNow', label: 'IPs bloqueadas', cls: 'danger' },
+        { key: 'totalRateLimited', label: 'Rate Limited', cls: 'warn' },
+        { key: 'totalInsults', label: 'Insultos', cls: 'warn' },
+        { key: 'totalOutOfScope', label: 'Fuera de scope', cls: '' }
+    ];
+
+    async function loadStats() {
+        const s = await api('/api/admin/stats');
+        document.getElementById('uptime').textContent = s.uptimeHuman || '—';
+        document.getElementById('activeIPs').textContent = s.activeIPs ?? '—';
+        const grid = document.getElementById('statsGrid');
+        grid.innerHTML = STAT_CARDS.map(c => `
+            <div class="stat-card ${c.cls}">
+                <span class="accent"></span>
+                <div class="label">${c.label}</div>
+                <div class="value">${(s[c.key] ?? 0).toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    function fmtTime(iso) {
+        const d = new Date(iso);
+        return d.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function logDetailText(e) {
+        const ip = `<span class="ip">${(e.ip||'').replace('::ffff:','')}</span>`;
+        const d = e.details || {};
+        let extra = '';
+        if (e.type === 'message') extra = `<span class="meta">intent: ${d.intent || 'ninguno'} · ${d.tokens || 0} tokens</span>`;
+        else if (e.type === 'ddos') extra = `<span class="meta">${d.reason || 'patrón DDoS'}</span>`;
+        else if (e.type === 'ratelimit') extra = `<span class="meta">${d.messageCount} msgs/min</span>`;
+        else if (e.type === 'insult') extra = `<span class="meta">"${(d.message||'').replace(/</g,'&lt;')}"</span>`;
+        else if (e.type === 'outofscope') extra = `<span class="meta">"${(d.message||'').replace(/</g,'&lt;')}"</span>`;
+        else if (e.type === 'error') extra = `<span class="meta">${(d.error||d.event||'').replace(/</g,'&lt;')}</span>`;
+        else if (e.type === 'block') extra = `<span class="meta">${d.reason || d.event || ''}</span>`;
+        return `${ip} ${extra}`;
+    }
+
+    async function loadLogs() {
+        const data = await api('/api/admin/logs?type=' + currentFilter + '&limit=100');
+        document.getElementById('logCount').textContent = data.events.length + ' eventos';
+        const body = document.getElementById('logBody');
+        if (!data.events.length) { body.innerHTML = '<div class="empty">Sin eventos registrados</div>'; return; }
+        body.innerHTML = data.events.map(e => `
+            <div class="log-entry">
+                <span class="log-time">${fmtTime(e.timestamp)}</span>
+                <span class="log-type ${e.type}">${e.type}</span>
+                <span class="log-detail">${logDetailText(e)}</span>
+            </div>
+        `).join('');
+    }
+
+    function flag(code) {
+        if (!code || code.length !== 2) return '';
+        return String.fromCodePoint(...[...code.toUpperCase()].map(c => 127397 + c.charCodeAt()));
+    }
+
+    async function loadIPs() {
+        const data = await api('/api/admin/ips');
+        document.getElementById('ipCount').textContent = data.ips.length + ' IPs';
+        const body = document.getElementById('ipBody');
+        if (!data.ips.length) { body.innerHTML = '<div class="empty">Sin conexiones registradas</div>'; return; }
+        body.innerHTML = data.ips.map(ip => {
+            const g = ip.geo || {};
+            const blocked = ip.bloqueado || ip.ddosBloqueado;
+            return `
+            <div class="ip-row ${blocked ? 'blocked' : ''}">
+                <div class="ip-top">
+                    <span class="ip-addr">${ip.ip}</span>
+                    <span>
+                        ${ip.ddosBloqueado ? '<span class="badge-ddos">DDoS BAN</span>' : ''}
+                        ${ip.bloqueado ? '<span class="badge-blocked">BLOQUEADA</span>' : ''}
+                    </span>
+                </div>
+                <div class="ip-geo">${flag(g.countryCode)} ${g.city || 'N/A'}, ${g.country || 'Desconocido'} · ${g.isp || 'N/A'}</div>
+                <div class="ip-stats">
+                    <span>msgs: <b>${ip.messageCount}</b></span>
+                    <span>insultos: <b>${ip.insultos}</b></span>
+                    <span>reqs/10s: <b>${ip.requestsInWindow}</b></span>
+                </div>
+                <div class="ip-actions">
+                    ${!myPermissions.includes('manage_ips') ? '' : (blocked
+                        ? `<button class="mini-btn unblock" onclick="unblockIP('${ip.ip}')">Desbloquear</button>`
+                        : `<button class="mini-btn block" onclick="blockIP('${ip.ip}')">Bloquear</button>`)}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function loadMessages() {
+        const data = await api('/api/admin/messages?limit=40');
+        document.getElementById('msgCount').textContent = data.messages.length + ' mensajes';
+        const body = document.getElementById('msgBody');
+        if (!data.messages.length) { body.innerHTML = '<div class="empty">Sin conversaciones aún</div>'; return; }
+        body.innerHTML = data.messages.map(m => `
+            <div class="msg-entry">
+                <div class="msg-user">${(m.userMessage||'').replace(/</g,'&lt;')}</div>
+                <div class="msg-bot">${(m.botResponse||'').replace(/</g,'&lt;')}</div>
+                <div class="msg-meta">${(m.ip||'').replace('::ffff:','')} · ${fmtTime(m.timestamp)} · ${m.tokensUsed || 0} tokens · ${m.intent || 'sin intent'}</div>
+            </div>
+        `).join('');
+    }
+
+    function setFilter(type) {
+        currentFilter = type;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+        loadLogs();
+    }
+
+    async function post(path, body, method = 'POST') {
+        const res = await fetch(path, {
+            method: method,
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        return res.json();
+    }
+
+    async function unblockIP(ip) {
+        const r = await post('/api/admin/unblock', { ip });
+        toast(r.message || 'Desbloqueada', r.success);
+        loadIPs(); loadStats();
+    }
+    async function blockIP(ip) {
+        if (!confirm('¿Bloquear la IP ' + ip + '?')) return;
+        const r = await post('/api/admin/block', { ip });
+        toast(r.message || 'Bloqueada', r.success);
+        loadIPs(); loadStats();
+    }
+
+    function toast(msg, ok = true) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast show' + (ok ? '' : ' error');
+        setTimeout(() => t.className = 'toast' + (ok ? '' : ' error'), 2800);
+    }
+
+    // ===== GESTIÓN DE USUARIOS =====
+    async function loadUsers() {
+        usersData = await api('/api/admin/users');
+        const body = document.getElementById('usersBody');
+        if (!usersData.users.length) { body.innerHTML = '<div class="empty">Sin usuarios</div>'; return; }
+        body.innerHTML = usersData.users.map(u => {
+            const permTags = u.permissions.map(p => `<span style="background:var(--panel-2); border:1px solid var(--border); color:var(--text-dim); font-size:0.62rem; padding:0.1rem 0.4rem; border-radius:4px;">${p}</span>`).join(' ');
+            const isMe = u.username === usersData.currentUser;
+            return `
+            <div class="ip-row">
+                <div class="ip-top">
+                    <span class="ip-addr">${u.username}${isMe ? ' <span style="color:var(--text-dim);font-size:0.65rem;">(vos)</span>' : ''}</span>
+                    <span style="background:rgba(90,201,88,0.12); color:var(--green); font-size:0.62rem; padding:0.15rem 0.5rem; border-radius:10px; font-weight:600;">${u.role}</span>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:0.3rem; margin:0.2rem 0;">${permTags}</div>
+                <div class="ip-geo">Creado por ${u.createdBy} · ${new Date(u.createdAt).toLocaleDateString('es-UY')}</div>
+                <div class="ip-actions">
+                    <button class="mini-btn unblock" onclick='editUser(${JSON.stringify(u.username)})'>Editar</button>
+                    ${isMe ? '' : `<button class="mini-btn block" onclick='deleteUser(${JSON.stringify(u.username)})'>Eliminar</button>`}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderPermCheckboxes(selected) {
+        const labels = usersData ? usersData.permissionLabels : {};
+        const perms = usersData ? usersData.availablePermissions : ['view_dashboard','view_messages','manage_ips','manage_users'];
+        document.getElementById('umPerms').innerHTML = perms.map(p => `
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; cursor:pointer;">
+                <input type="checkbox" class="perm-cb" value="${p}" ${selected.includes(p) ? 'checked' : ''}>
+                <span>${labels[p] || p}</span>
+            </label>
+        `).join('');
+    }
+
+    function fillRoleSelect(current) {
+        const roles = usersData ? usersData.roles : ['superadmin','moderador','visor'];
+        document.getElementById('umRole').innerHTML = roles.map(r => `<option value="${r}" ${r===current?'selected':''}>${r}</option>`).join('');
+    }
+
+    function applyRoleTemplate() {
+        const role = document.getElementById('umRole').value;
+        const tmpl = (usersData && usersData.roleTemplates[role]) || [];
+        renderPermCheckboxes(tmpl);
+    }
+
+    function openUserModal() {
+        editingUser = null;
+        document.getElementById('userModalTitle').textContent = 'Crear usuario';
+        document.getElementById('umUser').value = '';
+        document.getElementById('umUser').disabled = false;
+        document.getElementById('umPass').value = '';
+        document.getElementById('umPass').placeholder = 'Contraseña (mín 6)';
+        document.getElementById('umError').textContent = '';
+        fillRoleSelect('visor');
+        applyRoleTemplate();
+        document.getElementById('userModal').style.display = 'flex';
+    }
+
+    function editUser(username) {
+        const u = usersData.users.find(x => x.username === username);
+        if (!u) return;
+        editingUser = username;
+        document.getElementById('userModalTitle').textContent = 'Editar: ' + username;
+        document.getElementById('umUser').value = username;
+        document.getElementById('umUser').disabled = true;
+        document.getElementById('umPass').value = '';
+        document.getElementById('umPass').placeholder = 'Nueva contraseña (vacío = sin cambio)';
+        document.getElementById('umError').textContent = '';
+        fillRoleSelect(u.role);
+        renderPermCheckboxes(u.permissions);
+        document.getElementById('userModal').style.display = 'flex';
+    }
+
+    function closeUserModal() {
+        document.getElementById('userModal').style.display = 'none';
+    }
+
+    async function saveUser() {
+        const username = document.getElementById('umUser').value.trim();
+        const password = document.getElementById('umPass').value;
+        const role = document.getElementById('umRole').value;
+        const permissions = Array.from(document.querySelectorAll('.perm-cb:checked')).map(c => c.value);
+        const errEl = document.getElementById('umError');
+        errEl.textContent = '';
+
+        let res;
+        if (editingUser) {
+            const bodyObj = { role, permissions };
+            if (password) bodyObj.password = password;
+            res = await post('/api/admin/users/' + encodeURIComponent(editingUser), bodyObj, 'PUT');
+        } else {
+            if (!username || !password) { errEl.textContent = 'Usuario y contraseña requeridos'; return; }
+            res = await post('/api/admin/users', { username, password, role, permissions }, 'POST');
+        }
+        if (res.success) {
+            closeUserModal();
+            toast(res.message);
+            loadUsers();
+        } else {
+            errEl.textContent = res.error || 'Error';
+        }
+    }
+
+    async function deleteUser(username) {
+        if (!confirm('¿Eliminar al usuario "' + username + '"? Esta acción no se puede deshacer.')) return;
+        const res = await post('/api/admin/users/' + encodeURIComponent(username), {}, 'DELETE');
+        toast(res.message || res.error, !!res.success);
+        loadUsers();
+    }
+
+    // Auto-login si hay token guardado
+    if (token) {
+        myPermissions = JSON.parse(sessionStorage.getItem('ace_admin_perms') || '[]');
+        fetch('/api/admin/stats', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => { if (r.ok) showApp(); else { sessionStorage.clear(); token = null; } })
+            .catch(() => {});
+    }
+</script>
+</body>
+</html>

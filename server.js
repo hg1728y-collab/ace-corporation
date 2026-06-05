@@ -5,6 +5,9 @@ const express = require('express');
 const { Anthropic } = require('@anthropic-ai/sdk');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 dotenv.config();
 
@@ -141,7 +144,74 @@ function updateIPBehavior(ip, messageLength, isInsult) {
     };
 }
 
-// ===== NORMALIZACIÓN Y DETECCIÓN DE INTENT =====
+// ===== SISTEMA DE LOGGING (PARA ADMIN DASHBOARD) =====
+const systemLogs = {
+    events: [],          // Todos los eventos (rolling buffer)
+    chatMessages: [],    // Mensajes del chatbot
+    stats: {
+        totalRequests: 0,
+        totalErrors: 0,
+        totalDDoS: 0,
+        totalMessages: 0,
+        totalBlocked: 0,
+        totalRateLimited: 0,
+        totalInsults: 0,
+        totalOutOfScope: 0,
+        serverStartTime: Date.now()
+    }
+};
+const MAX_LOG_ENTRIES = 1000;
+const geoCache = new Map(); // Cache de geolocalización { ip: { country, city, ... } }
+
+function addLog(type, ip, details) {
+    const entry = {
+        id: Date.now() + Math.random().toString(36).slice(2, 8),
+        type,           // request | error | ddos | block | ratelimit | insult | message | outofscope
+        ip,
+        details,
+        timestamp: new Date().toISOString()
+    };
+    systemLogs.events.unshift(entry);
+    if (systemLogs.events.length > MAX_LOG_ENTRIES) {
+        systemLogs.events.pop();
+    }
+    return entry;
+}
+
+async function geolocateIP(ip) {
+    // IPs locales no se geolocalizan
+    if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+        return { country: 'Local', city: 'Localhost', isp: 'Local', lat: 0, lon: 0 };
+    }
+    if (geoCache.has(ip)) {
+        return geoCache.get(ip);
+    }
+    try {
+        const cleanIp = ip.replace('::ffff:', '');
+        const res = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,country,countryCode,regionName,city,isp,lat,lon,query`);
+        const data = await res.json();
+        if (data.status === 'success') {
+            const geo = {
+                country: data.country,
+                countryCode: data.countryCode,
+                region: data.regionName,
+                city: data.city,
+                isp: data.isp,
+                lat: data.lat,
+                lon: data.lon
+            };
+            geoCache.set(ip, geo);
+            return geo;
+        }
+    } catch (e) {
+        console.error('Error geolocalizando IP:', e.message);
+    }
+    const unknown = { country: 'Desconocido', city: 'N/A', isp: 'N/A', lat: 0, lon: 0 };
+    geoCache.set(ip, unknown);
+    return unknown;
+}
+
+
 function normalizeMessage(text) {
     // Reemplazar números por letras comunes (typos)
     const replacements = {
@@ -203,6 +273,26 @@ function getOutOfScopeResponse() {
     return "Solo puedo ayudarte con presupuestos, horarios, servicios (Pulido, Plastificado, Hidrolaqueado, Parquet) y ubicación de ACE. ¿Necesitas alguno de estos?";
 }
 
+function detectInsult(text) {
+    const normalized = normalizeMessage(text);
+    const insults = ['idiota', 'tonto', 'boludo', 'pelotudo', 'estupido', 'estúpido', 'burro', 'imbecil', 'imbécil', 'pendejo', 'basura', 'mierda', 'put', 'forro', 'sorete', 'gil'];
+    return insults.some(word => normalized.includes(word));
+}
+
+function validateResponse(response) {
+    if (!response || typeof response !== 'string') return false;
+    const hallmarks = [
+        response.length > 400,
+        response.includes('$'),
+        response.includes('https://'),
+        response.includes('@gmail'),
+        response.includes('@hotmail'),
+        /\d{4,}/.test(response.replace(/2915-?6686|096-?41-?9412|8:00|18:00|9:00|13:00|2001/g, '')),
+        response.toLowerCase().includes('creo que') && response.toLowerCase().includes('posiblemente')
+    ];
+    return !hallmarks.some(x => x);
+}
+
 // Servir archivos estáticos desde la carpeta actual
 app.use(express.static(__dirname));
 const SYSTEM_PROMPT = `Eres un asistente de servicio al cliente para ACE Corporation, 
@@ -251,11 +341,16 @@ setInterval(() => {
 
 app.post('/api/chat', async (req, res) => {
     const clientIp = getClientIp(req);
+    systemLogs.stats.totalRequests++;
     
     // CHECK DDOS PRIMERO (antes que todo)
     const ddosCheck = checkDDoS(clientIp);
     if (ddosCheck.isDDoS) {
         console.error(`🚫 DDoS blocked: ${clientIp}`);
+        systemLogs.stats.totalDDoS++;
+        systemLogs.stats.totalBlocked++;
+        addLog('ddos', clientIp, { reason: ddosCheck.reason });
+        geolocateIP(clientIp);
         return res.status(403).json({
             error: 'Bloqueado por seguridad',
             message: 'Tu IP ha sido bloqueada por actividad sospechosa. Intenta más tarde.'
@@ -263,6 +358,7 @@ app.post('/api/chat', async (req, res) => {
     }
     
     try {
+        let { message, history } = req.body;
         
         // VALIDAR INPUTS
         if (!message || !message.trim()) {
@@ -286,10 +382,17 @@ app.post('/api/chat', async (req, res) => {
         // DETECTAR INSULTOS
         const normalized = normalizeMessage(message);
         const isInsult = detectInsult(normalized);
+        if (isInsult) {
+            systemLogs.stats.totalInsults++;
+            addLog('insult', clientIp, { message: message.slice(0, 100) });
+        }
         
         // VALIDAR IP (bloqueada, rate limit)
         if (isIPBlocked(clientIp)) {
             console.warn(`🚫 Acceso denegado a IP bloqueada: ${clientIp}`);
+            systemLogs.stats.totalBlocked++;
+            addLog('block', clientIp, { reason: 'IP bloqueada por abuso (insultos)' });
+            geolocateIP(clientIp);
             return res.status(403).json({
                 error: 'IP bloqueada por comportamiento abusivo',
                 message: 'Tu IP ha sido bloqueada temporalmente. Contacta: ace@ace.com.uy'
@@ -300,6 +403,9 @@ app.post('/api/chat', async (req, res) => {
         
         if (ipStatus.isRateLimited) {
             console.warn(`⏱️ Rate limit para IP ${clientIp}: ${ipStatus.messageCount} mensajes en 1 min`);
+            systemLogs.stats.totalRateLimited++;
+            addLog('ratelimit', clientIp, { messageCount: ipStatus.messageCount });
+            geolocateIP(clientIp);
             return res.status(429).json({
                 error: 'Demasiados mensajes',
                 message: 'Máximo 10 mensajes por minuto. Espera un poco.',
@@ -308,13 +414,14 @@ app.post('/api/chat', async (req, res) => {
         }
 
         console.log(`📨 IP ${clientIp} | Original: "${message}"`);
-        console.log(`📝 Normalizado: "${normalized}" | Insulto: ${isInsult}`);
 
         const intent = detectIntent(normalized);
 
         // BLOQUEAR out-of-scope PRECOZMENTE sin gastar tokens
         if (isOutOfScope(normalized)) {
             console.log(`🚫 Out of scope: "${message}"`);
+            systemLogs.stats.totalOutOfScope++;
+            addLog('outofscope', clientIp, { message: message.slice(0, 100) });
             return res.json({
                 response: getOutOfScopeResponse(),
                 status: 'out_of_scope',
@@ -327,7 +434,7 @@ app.post('/api/chat', async (req, res) => {
             .filter(msg => msg && msg.role && msg.content && typeof msg.content === 'string')
             .map(msg => ({
                 role: msg.role === 'user' || msg.role === 'assistant' ? msg.role : 'user',
-                content: msg.content.trim().slice(0, 500) // Max 500 chars por msg
+                content: msg.content.trim().slice(0, 500)
             }));
 
         let userMessage = message;
@@ -341,6 +448,7 @@ app.post('/api/chat', async (req, res) => {
         const timeoutId = setTimeout(() => controller.abort(), 30000);
         
         let botResponse;
+        let tokensUsed = 0;
         try {
             const response = await client.messages.create({
                 model: 'claude-3-5-sonnet-20241022',
@@ -349,6 +457,7 @@ app.post('/api/chat', async (req, res) => {
                 messages: messages
             });
             botResponse = response.content[0].text;
+            tokensUsed = response.usage ? response.usage.output_tokens : 0;
         } finally {
             clearTimeout(timeoutId);
         }
@@ -359,8 +468,23 @@ app.post('/api/chat', async (req, res) => {
             botResponse = "No tengo esa información. Llamá al 2915-6686 para consultas personalizadas.";
         }
         
-        console.log(`✅ Respuesta: "${botResponse}"`);
-        console.log(`📊 Tokens: ${response.usage.output_tokens} | IP: ${clientIp}`);
+        console.log(`✅ Respuesta: "${botResponse}" | Tokens: ${tokensUsed} | IP: ${clientIp}`);
+
+        // LOG mensaje exitoso
+        systemLogs.stats.totalMessages++;
+        const chatLog = {
+            id: Date.now() + Math.random().toString(36).slice(2, 6),
+            ip: clientIp,
+            userMessage: message.slice(0, 200),
+            botResponse: botResponse.slice(0, 200),
+            intent: intent,
+            tokensUsed: tokensUsed,
+            timestamp: new Date().toISOString()
+        };
+        systemLogs.chatMessages.unshift(chatLog);
+        if (systemLogs.chatMessages.length > MAX_LOG_ENTRIES) systemLogs.chatMessages.pop();
+        addLog('message', clientIp, { intent, tokens: tokensUsed });
+        geolocateIP(clientIp);
 
         res.json({
             response: botResponse,
@@ -374,12 +498,341 @@ app.post('/api/chat', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Error:', error.message);
+        systemLogs.stats.totalErrors++;
+        addLog('error', clientIp, { error: error.message });
         res.status(500).json({
             error: 'Error procesando tu mensaje',
             details: error.message
         });
     }
 });
+
+// ===== PANEL DE ADMINISTRADOR (RBAC) =====
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ace-admin-2025';
+const ADMIN_IPS = (process.env.ADMIN_IPS || '').split(',').map(s => s.trim()).filter(Boolean);
+const adminSessions = new Map(); // { token: { ip, username, createdAt } }
+const ADMIN_SESSION_DURATION = 7200000; // 2 horas
+
+// Permisos disponibles y roles predefinidos
+const PERMISSIONS = ['view_dashboard', 'view_messages', 'manage_ips', 'manage_users'];
+const PERMISSION_LABELS = {
+    view_dashboard: 'Ver dashboard y estadísticas',
+    view_messages: 'Ver conversaciones del chatbot',
+    manage_ips: 'Bloquear / desbloquear IPs',
+    manage_users: 'Crear y administrar usuarios'
+};
+const ROLES = {
+    superadmin: ['view_dashboard', 'view_messages', 'manage_ips', 'manage_users'],
+    moderador: ['view_dashboard', 'view_messages', 'manage_ips'],
+    visor: ['view_dashboard', 'view_messages']
+};
+
+// Persistencia de usuarios
+const USERS_FILE = path.join(__dirname, 'users.json');
+let users = {}; // { username: { passwordHash, role, permissions, createdAt, createdBy } }
+
+function loadUsers() {
+    try {
+        if (fs.existsSync(USERS_FILE)) {
+            users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+        }
+    } catch (e) {
+        console.error('Error cargando usuarios:', e.message);
+        users = {};
+    }
+}
+function saveUsers() {
+    try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    } catch (e) {
+        console.error('Error guardando usuarios:', e.message);
+    }
+}
+
+function hashPassword(password) {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+    return `${salt}:${hash}`;
+}
+function verifyPassword(password, stored) {
+    try {
+        const [salt, hash] = stored.split(':');
+        const test = crypto.scryptSync(password, salt, 64).toString('hex');
+        const a = Buffer.from(hash, 'hex');
+        const b = Buffer.from(test, 'hex');
+        return a.length === b.length && crypto.timingSafeEqual(a, b);
+    } catch (e) {
+        return false;
+    }
+}
+
+// Inicializar: crear superadmin por defecto si no hay usuarios
+loadUsers();
+if (Object.keys(users).length === 0) {
+    users['admin'] = {
+        passwordHash: hashPassword(ADMIN_PASSWORD),
+        role: 'superadmin',
+        permissions: ROLES.superadmin,
+        createdAt: new Date().toISOString(),
+        createdBy: 'sistema'
+    };
+    saveUsers();
+    console.log('✅ Usuario superadmin "admin" creado (contraseña = ADMIN_PASSWORD del .env)');
+}
+
+function generateToken() {
+    return crypto.randomBytes(24).toString('hex');
+}
+
+function isAdminIPAllowed(ip) {
+    if (ADMIN_IPS.length === 0) return true;
+    const cleanIp = (ip || '').replace('::ffff:', '');
+    return ADMIN_IPS.some(allowed => cleanIp === allowed || cleanIp.startsWith(allowed));
+}
+
+function adminAuth(req, res, next) {
+    const ip = getClientIp(req);
+    if (!isAdminIPAllowed(ip)) {
+        console.warn(`🚫 Intento de acceso admin desde IP no autorizada: ${ip}`);
+        addLog('error', ip, { event: 'Intento acceso admin no autorizado' });
+        return res.status(403).json({ error: 'Acceso denegado. IP no autorizada.' });
+    }
+    const token = req.headers['authorization']?.replace('Bearer ', '');
+    const session = adminSessions.get(token);
+    if (!session || Date.now() - session.createdAt > ADMIN_SESSION_DURATION) {
+        if (session) adminSessions.delete(token);
+        return res.status(401).json({ error: 'Sesión inválida o expirada' });
+    }
+    const user = users[session.username];
+    if (!user) {
+        adminSessions.delete(token);
+        return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+    req.user = { username: session.username, role: user.role, permissions: user.permissions || [] };
+    next();
+}
+
+function requirePermission(perm) {
+    return (req, res, next) => {
+        if (!req.user || !req.user.permissions.includes(perm)) {
+            return res.status(403).json({ error: 'No tenés permiso para esta acción' });
+        }
+        next();
+    };
+}
+
+// Login (multiusuario)
+app.post('/api/admin/login', (req, res) => {
+    const ip = getClientIp(req);
+    if (!isAdminIPAllowed(ip)) {
+        console.warn(`🚫 Login admin rechazado (IP no autorizada): ${ip}`);
+        return res.status(403).json({ error: 'IP no autorizada para acceso admin' });
+    }
+    const { username, password } = req.body;
+    const user = users[username];
+    if (!user || !verifyPassword(password, user.passwordHash)) {
+        console.warn(`🚫 Login fallido (usuario: ${username}) desde ${ip}`);
+        addLog('error', ip, { event: 'Login admin fallido', username: username || 'vacío' });
+        return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+    }
+    const token = generateToken();
+    adminSessions.set(token, { ip, username, createdAt: Date.now() });
+    console.log(`✅ Login admin exitoso: ${username} desde ${ip}`);
+    res.json({
+        token,
+        username,
+        role: user.role,
+        permissions: user.permissions,
+        expiresIn: ADMIN_SESSION_DURATION
+    });
+});
+
+// ===== GESTIÓN DE USUARIOS =====
+// Listar usuarios
+app.get('/api/admin/users', adminAuth, requirePermission('manage_users'), (req, res) => {
+    const list = Object.entries(users).map(([username, u]) => ({
+        username,
+        role: u.role,
+        permissions: u.permissions || [],
+        createdAt: u.createdAt,
+        createdBy: u.createdBy
+    }));
+    res.json({
+        users: list,
+        availablePermissions: PERMISSIONS,
+        permissionLabels: PERMISSION_LABELS,
+        roles: Object.keys(ROLES),
+        roleTemplates: ROLES,
+        currentUser: req.user.username
+    });
+});
+
+// Crear usuario
+app.post('/api/admin/users', adminAuth, requirePermission('manage_users'), (req, res) => {
+    const { username, password, role, permissions } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
+    if (!/^[a-zA-Z0-9_.-]{3,20}$/.test(username)) return res.status(400).json({ error: 'Usuario inválido (3-20 caracteres, sin espacios)' });
+    if (users[username]) return res.status(409).json({ error: 'El usuario ya existe' });
+    if (password.length < 6) return res.status(400).json({ error: 'Contraseña mínima 6 caracteres' });
+    const finalRole = ROLES[role] ? role : 'visor';
+    const finalPerms = Array.isArray(permissions) && permissions.length
+        ? permissions.filter(p => PERMISSIONS.includes(p))
+        : ROLES[finalRole];
+    users[username] = {
+        passwordHash: hashPassword(password),
+        role: finalRole,
+        permissions: finalPerms,
+        createdAt: new Date().toISOString(),
+        createdBy: req.user.username
+    };
+    saveUsers();
+    console.log(`✅ Usuario "${username}" creado por ${req.user.username}`);
+    res.json({ success: true, message: `Usuario ${username} creado` });
+});
+
+// Editar usuario (rol, permisos, contraseña)
+app.put('/api/admin/users/:username', adminAuth, requirePermission('manage_users'), (req, res) => {
+    const { username } = req.params;
+    const user = users[username];
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    const { role, permissions, password } = req.body;
+
+    // No permitir que el último superadmin se degrade a sí mismo
+    if (username === req.user.username && role && role !== 'superadmin' && user.role === 'superadmin') {
+        const superadmins = Object.values(users).filter(u => u.role === 'superadmin').length;
+        if (superadmins <= 1) return res.status(400).json({ error: 'No podés quitarte el rol: sos el último superadmin' });
+    }
+    if (role && ROLES[role]) {
+        user.role = role;
+        user.permissions = Array.isArray(permissions) && permissions.length
+            ? permissions.filter(p => PERMISSIONS.includes(p))
+            : ROLES[role];
+    } else if (Array.isArray(permissions)) {
+        user.permissions = permissions.filter(p => PERMISSIONS.includes(p));
+    }
+    if (password) {
+        if (password.length < 6) return res.status(400).json({ error: 'Contraseña mínima 6 caracteres' });
+        user.passwordHash = hashPassword(password);
+    }
+    saveUsers();
+    console.log(`✅ Usuario "${username}" actualizado por ${req.user.username}`);
+    res.json({ success: true, message: `Usuario ${username} actualizado` });
+});
+
+// Eliminar usuario
+app.delete('/api/admin/users/:username', adminAuth, requirePermission('manage_users'), (req, res) => {
+    const { username } = req.params;
+    if (!users[username]) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (username === req.user.username) return res.status(400).json({ error: 'No podés eliminarte a vos mismo' });
+    const superadmins = Object.values(users).filter(u => u.role === 'superadmin').length;
+    if (users[username].role === 'superadmin' && superadmins <= 1) {
+        return res.status(400).json({ error: 'No podés eliminar el último superadmin' });
+    }
+    delete users[username];
+    saveUsers();
+    console.log(`🗑️ Usuario "${username}" eliminado por ${req.user.username}`);
+    res.json({ success: true, message: `Usuario ${username} eliminado` });
+});
+
+// Estadísticas generales + uptime
+app.get('/api/admin/stats', adminAuth, requirePermission('view_dashboard'), (req, res) => {
+    const uptime = Date.now() - systemLogs.stats.serverStartTime;
+    const activeIPs = ipBehavior.size;
+    let blockedNow = 0, ddosBlockedNow = 0;
+    for (const b of ipBehavior.values()) {
+        if (b.bloqueado) blockedNow++;
+        if (b.ddosBloqueado) ddosBlockedNow++;
+    }
+    res.json({
+        ...systemLogs.stats,
+        uptimeMs: uptime,
+        uptimeHuman: formatUptime(uptime),
+        activeIPs,
+        blockedNow,
+        ddosBlockedNow,
+        cachedGeoIPs: geoCache.size
+    });
+});
+
+// Eventos/logs en vivo (filtrable por tipo)
+app.get('/api/admin/logs', adminAuth, requirePermission('view_dashboard'), (req, res) => {
+    const { type, limit } = req.query;
+    let events = systemLogs.events;
+    if (type && type !== 'all') {
+        events = events.filter(e => e.type === type);
+    }
+    res.json({ events: events.slice(0, parseInt(limit) || 100) });
+});
+
+// Mensajes del chatbot
+app.get('/api/admin/messages', adminAuth, requirePermission('view_messages'), (req, res) => {
+    const { limit } = req.query;
+    res.json({ messages: systemLogs.chatMessages.slice(0, parseInt(limit) || 50) });
+});
+
+// Lista de IPs con comportamiento + geolocalización
+app.get('/api/admin/ips', adminAuth, requirePermission('view_dashboard'), async (req, res) => {
+    const ips = [];
+    for (const [ip, behavior] of ipBehavior.entries()) {
+        const geo = geoCache.get(ip) || await geolocateIP(ip);
+        ips.push({
+            ip: ip.replace('::ffff:', ''),
+            messageCount: behavior.messageCount,
+            insultos: behavior.insultos,
+            bloqueado: behavior.bloqueado || false,
+            ddosBloqueado: behavior.ddosBloqueado || false,
+            lastMessage: new Date(behavior.lastMessage).toISOString(),
+            requestsInWindow: behavior.requestTimes ? behavior.requestTimes.length : 0,
+            geo
+        });
+    }
+    ips.sort((a, b) => new Date(b.lastMessage) - new Date(a.lastMessage));
+    res.json({ ips });
+});
+
+// Desbloquear IP
+app.post('/api/admin/unblock', adminAuth, requirePermission('manage_ips'), (req, res) => {
+    const { ip } = req.body;
+    const behavior = ipBehavior.get(ip) || ipBehavior.get('::ffff:' + ip);
+    if (behavior) {
+        behavior.bloqueado = false;
+        behavior.ddosBloqueado = false;
+        behavior.insultos = 0;
+        behavior.messageCount = 0;
+        behavior.requestTimes = [];
+        console.log(`✅ IP ${ip} desbloqueada manualmente por admin`);
+        addLog('block', ip, { event: 'Desbloqueada manualmente por admin' });
+        return res.json({ success: true, message: `IP ${ip} desbloqueada` });
+    }
+    res.status(404).json({ error: 'IP no encontrada' });
+});
+
+// Bloquear IP manualmente
+app.post('/api/admin/block', adminAuth, requirePermission('manage_ips'), (req, res) => {
+    const { ip } = req.body;
+    if (!ipBehavior.has(ip)) {
+        ipBehavior.set(ip, { messageCount: 0, insultos: 0, lastMessage: Date.now(), requestTimes: [] });
+    }
+    const behavior = ipBehavior.get(ip);
+    behavior.ddosBloqueado = true;
+    behavior.ddosBannedAt = Date.now();
+    console.log(`🚫 IP ${ip} bloqueada manualmente por admin`);
+    addLog('block', ip, { event: 'Bloqueada manualmente por admin' });
+    res.json({ success: true, message: `IP ${ip} bloqueada` });
+});
+
+// Servir dashboard admin
+app.get('/admin', (req, res) => {
+    res.sendFile(__dirname + '/admin.html');
+});
+
+function formatUptime(ms) {
+    const s = Math.floor(ms / 1000);
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return `${d}d ${h}h ${m}m`;
+}
 
 // Health check
 // Ruta raíz
