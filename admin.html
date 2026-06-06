@@ -1014,14 +1014,35 @@
         });
 
         // Tile layer claro (combina con dashboard blanco)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
             subdomains: 'abcd'
-        }).addTo(mapInstance);
+        });
+        tiles.addTo(mapInstance);
 
-        // FIX cuadrado negro: recalcular tamaño después de render
-        setTimeout(() => mapInstance.invalidateSize(), 200);
-        setTimeout(() => mapInstance.invalidateSize(), 600);
+        // FIX renderizado: recalcular tamaño en varios momentos
+        const refresh = () => {
+            if (!mapInstance) return;
+            mapInstance.invalidateSize(true);
+            mapInstance.setView([20, 0], 2);
+        };
+        tiles.on('load', () => mapInstance.invalidateSize(true));
+        requestAnimationFrame(refresh);
+        setTimeout(refresh, 100);
+        setTimeout(refresh, 400);
+        setTimeout(refresh, 1000);
+
+        // ResizeObserver: recalcula cuando el contenedor cambia de tamaño
+        if (window.ResizeObserver) {
+            const ro = new ResizeObserver(() => {
+                if (mapInstance) mapInstance.invalidateSize(true);
+            });
+            ro.observe(mapEl);
+        }
+        // También al cambiar tamaño de ventana
+        window.addEventListener('resize', () => {
+            if (mapInstance) mapInstance.invalidateSize(true);
+        });
 
         loadMapData();
     }
