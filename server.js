@@ -40,6 +40,49 @@ app.use((req, res, next) => {
     next();
 });
 
+// ===== BLOQUEO GLOBAL DE IPS BANEADAS =====
+// Una IP baneada no puede acceder a NADA de la web pública.
+// Excepción: el panel /admin y sus APIs siguen accesibles para poder desbanear.
+app.use((req, res, next) => {
+    const ip = getClientIp(req);
+    const path = req.path || req.url || '';
+    const esRutaAdmin = path === '/admin' || path.startsWith('/api/admin');
+
+    if (isIPBanned(ip) && !esRutaAdmin) {
+        const info = blockedIPs[ip] || {};
+        res.status(403);
+        // Si pide JSON (ej. el chatbot), responder JSON
+        if (path.startsWith('/api/') || (req.headers.accept || '').includes('application/json')) {
+            return res.json({
+                error: 'Acceso bloqueado',
+                message: `Tu acceso a este sitio fue bloqueado. Razón: ${info.reason || 'Bloqueado por el administrador'}`
+            });
+        }
+        // Si pide una página, mostrar pantalla de bloqueo
+        return res.send(`<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceso Bloqueado</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',system-ui,sans-serif;}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%);color:#fff;text-align:center;padding:2rem;}
+  .box{max-width:480px;}
+  .icon{font-size:4rem;margin-bottom:1.5rem;}
+  h1{font-size:1.8rem;margin-bottom:1rem;color:#ff5b50;}
+  p{color:#bbb;line-height:1.6;margin-bottom:0.5rem;}
+  .reason{margin-top:1.5rem;padding:1rem;background:rgba(255,77,66,0.1);border:1px solid #ff4d42;border-radius:8px;font-size:0.9rem;}
+</style></head>
+<body><div class="box">
+  <div class="icon">🚫</div>
+  <h1>Acceso Bloqueado</h1>
+  <p>Tu acceso a este sitio web ha sido restringido por el administrador.</p>
+  <p>Si crees que se trata de un error, comunícate con nosotros.</p>
+  <div class="reason"><strong>Razón:</strong> ${info.reason || 'Bloqueado por el administrador'}</div>
+</div></body></html>`);
+    }
+    next();
+});
+
 // ===== DDOS PROTECTION =====
 const DDOS_THRESHOLD = 50; // requests
 const DDOS_WINDOW = 10000; // 10 segundos
@@ -161,7 +204,89 @@ function addLog(type, ip, details) {
     if (systemLogs.events.length > MAX_LOG_ENTRIES) {
         systemLogs.events.pop();
     }
+    scheduleSaveLogs();
     return entry;
+}
+
+// ===== PERSISTENCIA DE LOGS (sobreviven reinicios) =====
+const SYSTEM_LOGS_FILE = 'system-logs.json';
+let saveLogsTimer = null;
+
+function loadSystemLogs() {
+    try {
+        if (fs.existsSync(SYSTEM_LOGS_FILE)) {
+            const data = JSON.parse(fs.readFileSync(SYSTEM_LOGS_FILE, 'utf8'));
+            if (Array.isArray(data.events)) systemLogs.events = data.events;
+            if (Array.isArray(data.chatMessages)) systemLogs.chatMessages = data.chatMessages;
+            if (data.stats) {
+                // Conservar stats acumuladas, pero resetear la hora de arranque actual
+                const savedStart = systemLogs.stats.serverStartTime;
+                systemLogs.stats = { ...systemLogs.stats, ...data.stats, serverStartTime: savedStart };
+            }
+            console.log(`✅ Logs cargados: ${systemLogs.events.length} eventos, ${systemLogs.chatMessages.length} mensajes`);
+        }
+    } catch (e) {
+        console.error('Error cargando logs:', e.message);
+    }
+}
+
+function saveSystemLogs() {
+    try {
+        fs.writeFileSync(SYSTEM_LOGS_FILE, JSON.stringify({
+            events: systemLogs.events,
+            chatMessages: systemLogs.chatMessages,
+            stats: systemLogs.stats
+        }, null, 2));
+    } catch (e) {
+        console.error('Error guardando logs:', e.message);
+    }
+}
+
+// Guardado throttled: agrupa escrituras para no saturar el disco (máx 1 cada 3s)
+function scheduleSaveLogs() {
+    if (saveLogsTimer) return;
+    saveLogsTimer = setTimeout(() => {
+        saveLogsTimer = null;
+        saveSystemLogs();
+    }, 3000);
+}
+
+// ===== DETECCIÓN DE DISPOSITIVO (móvil / tablet / escritorio) =====
+function parseUserAgent(ua) {
+    if (!ua) return { device: 'Desconocido', os: 'Desconocido', browser: 'Desconocido', isMobile: false };
+    const s = ua.toLowerCase();
+
+    // Tipo de dispositivo
+    let device = 'Escritorio';
+    let isMobile = false;
+    if (/ipad|tablet|playbook|silk|kindle/.test(s) || (/android/.test(s) && !/mobile/.test(s))) {
+        device = 'Tablet';
+        isMobile = true;
+    } else if (/mobi|iphone|ipod|android.*mobile|blackberry|opera mini|iemobile|windows phone/.test(s)) {
+        device = 'Teléfono';
+        isMobile = true;
+    }
+
+    // Sistema operativo
+    let os = 'Desconocido';
+    if (/iphone|ipad|ipod/.test(s)) os = 'iOS';
+    else if (/android/.test(s)) os = 'Android';
+    else if (/windows phone/.test(s)) os = 'Windows Phone';
+    else if (/windows nt/.test(s)) os = 'Windows';
+    else if (/mac os x/.test(s)) os = 'macOS';
+    else if (/cros/.test(s)) os = 'ChromeOS';
+    else if (/linux/.test(s)) os = 'Linux';
+
+    // Navegador (orden importa: Edge y Chrome contienen "safari"/"chrome")
+    let browser = 'Desconocido';
+    if (/edg\//.test(s)) browser = 'Edge';
+    else if (/opr\/|opera/.test(s)) browser = 'Opera';
+    else if (/samsungbrowser/.test(s)) browser = 'Samsung Internet';
+    else if (/chrome|crios/.test(s)) browser = 'Chrome';
+    else if (/firefox|fxios/.test(s)) browser = 'Firefox';
+    else if (/safari/.test(s)) browser = 'Safari';
+
+    return { device, os, browser, isMobile };
 }
 
 async function geolocateIP(ip) {
@@ -496,6 +621,7 @@ app.post('/api/chat', async (req, res) => {
 
         console.log(`📨 IP ${clientIp} | Original: "${message}"`);
 
+        const normalized = normalizeMessage(message);
         const intent = detectIntent(normalized);
 
         // BLOQUEAR out-of-scope PRECOZMENTE sin gastar tokens
@@ -519,18 +645,28 @@ app.post('/api/chat', async (req, res) => {
 
         // LOG mensaje
         systemLogs.stats.totalMessages++;
+        const device = parseUserAgent(req.headers['user-agent']);
         const chatLog = {
             id: Date.now() + Math.random().toString(36).slice(2, 6),
             ip: clientIp,
             userMessage: message.slice(0, 200),
             botResponse: clientReply || '(respuesta generada en el navegador)',
             intent: intent,
-            tokensUsed: 0,
+            device: device.device,
+            os: device.os,
+            browser: device.browser,
             timestamp: new Date().toISOString()
         };
         systemLogs.chatMessages.unshift(chatLog);
         if (systemLogs.chatMessages.length > MAX_LOG_ENTRIES) systemLogs.chatMessages.pop();
-        addLog('message', clientIp, { intent, tokens: 0 });
+        // Guardar el dispositivo en el comportamiento de la IP (para la lista y stats)
+        if (ipBehavior.has(clientIp)) {
+            const b = ipBehavior.get(clientIp);
+            b.device = device.device;
+            b.os = device.os;
+            b.browser = device.browser;
+        }
+        addLog('message', clientIp, { intent, device: device.device, os: device.os });
         geolocateIP(clientIp);
 
         return res.json({
@@ -616,6 +752,7 @@ function verifyPassword(password, stored) {
 loadUsers();
 loadIPLog();
 loadBlockedIPs();
+loadSystemLogs();
 if (!users['admin']) {
     // No existe: crearlo
     users['admin'] = {
@@ -839,6 +976,9 @@ app.get('/api/admin/ips', adminAuth, requirePermission('view_dashboard'), async 
             ddosBloqueado: behavior.ddosBloqueado || false,
             lastMessage: new Date(behavior.lastMessage).toISOString(),
             requestsInWindow: behavior.requestTimes ? behavior.requestTimes.length : 0,
+            device: behavior.device || 'Desconocido',
+            os: behavior.os || 'Desconocido',
+            browser: behavior.browser || 'Desconocido',
             geo
         });
     }
@@ -916,7 +1056,7 @@ app.post('/api/admin/unban-ip', adminAuth, requirePermission('manage_ips'), (req
 });
 
 // Obtener lista de IPs baneadas
-app.get('/api/admin/banned-ips', adminAuth, requirePermission('view_ips'), (req, res) => {
+app.get('/api/admin/banned-ips', adminAuth, requirePermission('manage_ips'), (req, res) => {
     const banned = Object.entries(blockedIPs).map(([ip, data]) => ({
         ip,
         ...data
@@ -959,3 +1099,14 @@ app.listen(PORT, () => {
     console.log(`🚀 ACE Corporation Chatbot corriendo en puerto ${PORT}`);
     console.log(`📝 Chatbot en modo local (sin IA / sin API key). Admin en /admin`);
 });
+
+// Guardar logs antes de apagar (no perder datos recientes en reinicios/deploys)
+function gracefulShutdown() {
+    console.log('💾 Guardando logs antes de apagar...');
+    saveSystemLogs();
+    saveIPLog();
+    saveBlockedIPs();
+    process.exit(0);
+}
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);

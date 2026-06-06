@@ -506,9 +506,8 @@
                 <button class="filter-btn active" data-type="all" onclick="setFilter('all')">Todos</button>
                 <button class="filter-btn" data-type="message" onclick="setFilter('message')">Mensajes</button>
                 <button class="filter-btn" data-type="ddos" onclick="setFilter('ddos')">DDoS</button>
-                <button class="filter-btn" data-type="block" onclick="setFilter('block')">Bloquears</button>
+                <button class="filter-btn" data-type="block" onclick="setFilter('block')">Bloqueos</button>
                 <button class="filter-btn" data-type="ratelimit" onclick="setFilter('ratelimit')">Rate Limit</button>
-                <button class="filter-btn" data-type="insult" onclick="setFilter('insult')">Insultos</button>
                 <button class="filter-btn" data-type="error" onclick="setFilter('error')">Errores</button>
             </div>
             <div class="panel-body" id="logBody"></div>
@@ -563,7 +562,7 @@
         <label style="font-size:0.75rem; color:var(--text-dim); display:block; margin-bottom:0.5rem;">Permisos específicos</label>
         <div id="umPerms" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.3rem;"></div>
         <div style="display:flex; gap:0.6rem;">
-            <button onclick="saveUser()" style="flex:1; padding:0.8rem; background:var(--green); color:#07120a; border:none; border-radius:8px; font-family:var(--mono); font-weight:700; cursor:pointer;">Guardar</button>
+            <button onclick="saveUser()" style="flex:1; padding:0.8rem; background:var(--green); color:white; border:none; border-radius:8px; font-family:var(--mono); font-weight:700; cursor:pointer;">Guardar</button>
             <button onclick="closeUserModal()" style="flex:1; padding:0.8rem; background:transparent; border:1px solid var(--border); color:var(--text-dim); border-radius:8px; font-family:var(--mono); cursor:pointer;">Cancelar</button>
         </div>
         <div id="umError" style="color:var(--red); font-size:0.8rem; margin-top:0.8rem; min-height:1rem;"></div>
@@ -588,7 +587,7 @@
         try {
             const res = await fetch('/api/admin/login', {
                 method: 'POST',
-                headers: { 'Content-Tipo': 'application/json' },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password: pw })
             });
             const data = await res.json();
@@ -634,7 +633,7 @@
         document.getElementById('meUser').textContent = sessionStorage.getItem('ace_admin_user') || '—';
         document.getElementById('meRol').textContent = '(' + (sessionStorage.getItem('ace_admin_role') || '') + ')';
         applyPermisos();
-        setHoraout(() => initMap(), 300);
+        setTimeout(() => initMap(), 300);
         refreshTodos();
         refreshHorar = setInterval(refreshTodos, 5000);
     }
@@ -683,7 +682,7 @@
 
     function fmtHora(iso) {
         const d = new Date(iso);
-        return d.toLocaleHoraString('es-UY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        return d.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
     function logDetailText(e) {
@@ -702,10 +701,10 @@
 
     async function loadLogs() {
         const data = await api('/api/admin/logs?type=' + currentFilter + '&limit=100');
-        document.getElementById('logCount').textContent = data.eventos.length + ' eventos';
+        document.getElementById('logCount').textContent = data.events.length + ' eventos';
         const body = document.getElementById('logBody');
-        if (!data.eventos.length) { body.innerHTML = '<div class="empty">Sin eventos registrados</div>'; return; }
-        body.innerHTML = data.eventos.map(e => `
+        if (!data.events.length) { body.innerHTML = '<div class="empty">Sin eventos registrados</div>'; return; }
+        body.innerHTML = data.events.map(e => `
             <div class="log-entry">
                 <span class="log-time">${fmtHora(e.timestamp)}</span>
                 <span class="log-type ${e.type}">${e.type}</span>
@@ -717,6 +716,13 @@
     function flag(code) {
         if (!code || code.length !== 2) return '';
         return String.fromCodePoint(...[...code.toUpperCase()].map(c => 127397 + c.charCodeAt()));
+    }
+
+    function deviceIcon(device) {
+        if (device === 'Teléfono') return '📱';
+        if (device === 'Tablet') return '📱';
+        if (device === 'Escritorio') return '💻';
+        return '🖥️';
     }
 
     async function loadIPs() {
@@ -737,16 +743,16 @@
                     </span>
                 </div>
                 <div class="ip-geo">${flag(g.countryCode)} ${g.city || 'N/A'}, ${g.country || 'Desconocido'} · ${g.isp || 'N/A'}</div>
+                <div class="ip-geo">${deviceIcon(ip.device)} ${ip.device || 'Desconocido'} · ${ip.os || ''} · ${ip.browser || ''}</div>
                 <div class="ip-stats">
                     <span>msgs: <b>${ip.messageCount}</b></span>
-                    <span>insultos: <b>${ip.insultos}</b></span>
                     <span>reqs/10s: <b>${ip.requestsInWindow}</b></span>
                 </div>
                 <div class="ip-actions">
                     ${!myPermisos.includes('manage_ips') ? '' : (blocked
                         ? `<button class="mini-btn unblock" onclick="unblockIP('${ip.ip}')">Desbloquear</button>`
                         : `<button class="mini-btn block" onclick="blockIP('${ip.ip}')">Bloquear</button>`)}
-                    ${!myPermisos.includes('manage_ips') ? '' : `<button class="mini-btn" style="border-color:var(--red); color:var(--red);" onclick="banIPFromList('${ip.ip}')">🚫 Banearear</button>`}
+                    ${!myPermisos.includes('manage_ips') ? '' : `<button class="mini-btn" style="border-color:var(--red); color:var(--red);" onclick="banIPFromList('${ip.ip}')">🚫 Banear</button>`}
                 </div>
             </div>`;
         }).join('');
@@ -759,23 +765,23 @@
         if (!data.messages.length) { body.innerHTML = '<div class="empty">Sin conversaciones aún</div>'; return; }
         body.innerHTML = data.messages.map(m => `
             <div class="msg-entry">
-                <div class="msg-user">${(m.userMensaje||'').replace(/</g,'&lt;')}</div>
+                <div class="msg-user">${(m.userMessage||'').replace(/</g,'&lt;')}</div>
                 <div class="msg-bot">${(m.botResponse||'').replace(/</g,'&lt;')}</div>
-                <div class="msg-meta">${(m.ip||'').replace('::ffff:','')} · ${fmtHora(m.timestamp)} · ${m.tokensUsed || 0} tokens · ${m.intent || 'sin intent'}</div>
+                <div class="msg-meta">${(m.ip||'').replace('::ffff:','')} · ${fmtHora(m.timestamp)} · ${deviceIcon(m.device)} ${m.device || ''} ${m.os || ''} · ${m.intent || 'sin intent'}</div>
             </div>
         `).join('');
     }
 
     function setFilter(type) {
         currentFilter = type;
-        document.querySelectorTodos('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
         loadLogs();
     }
 
     async function post(path, body, method = 'POST') {
         const res = await fetch(path, {
             method: method,
-            headers: { 'Authorization': 'Bearer ' + token, 'Content-Tipo': 'application/json' },
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
         return res.json();
@@ -797,7 +803,7 @@
         const t = document.getElementById('toast');
         t.textContent = msg;
         t.className = 'toast show' + (ok ? '' : ' error');
-        setHoraout(() => t.className = 'toast' + (ok ? '' : ' error'), 2800);
+        setTimeout(() => t.className = 'toast' + (ok ? '' : ' error'), 2800);
     }
 
     // ===== GESTIÓN DE USUARIOS =====
@@ -826,15 +832,15 @@
 
     async function loadBanearnedIPs() {
         try {
-            const data = await api('/api/admin/bloqueadas-ips');
+            const data = await api('/api/admin/banned-ips');
             const body = document.getElementById('bloqueadasIPsBody');
-            if (!data.bloqueadasIPs || !data.bloqueadasIPs.length) { 
+            if (!data.bannedIPs || !data.bannedIPs.length) { 
                 body.innerHTML = '<div class="empty">✅ Sin IPs bloqueadas</div>'; 
                 document.getElementById('bloqueadasCount').textContent = '0 bloqueadas';
                 return; 
             }
             document.getElementById('bloqueadasCount').textContent = `${data.count} bloqueadas`;
-            body.innerHTML = data.bloqueadasIPs.map(item => `
+            body.innerHTML = data.bannedIPs.map(item => `
                 <div class="ip-row">
                     <div class="ip-top">
                         <span class="ip-addr">${item.ip}</span>
@@ -933,7 +939,7 @@
         const username = document.getElementById('umUser').value.trim();
         const password = document.getElementById('umPass').value;
         const role = document.getElementById('umRol').value;
-        const permissions = Array.from(document.querySelectorTodos('.perm-cb:checked')).map(c => c.value);
+        const permissions = Array.from(document.querySelectorAll('.perm-cb:checked')).map(c => c.value);
         const errEl = document.getElementById('umError');
         errEl.textContent = '';
 
@@ -1005,11 +1011,11 @@
             
             data.ips.forEach(ip => {
                 const geo = ip.geo || {};
-                if (geo.latitude && geo.longitude) {
-                    // Create marcador
-                    const color = ip.ddosBloqueado ? '#ff4d42' : (ip.bloqueado ? '#ffc043' : '#5AC958');
-                    const marker = L.circleMarker([geo.latitude, geo.longitude], {
-                        radius: Math.min(ip.accessCount / 5, 15),
+                // El servidor manda lat/lon (no latitude/longitude). Excluir 0,0 (locales/desconocidos)
+                if (geo.lat && geo.lon && !(geo.lat === 0 && geo.lon === 0)) {
+                    const color = ip.ddosBloqueado ? '#ff4d42' : (ip.bloqueado ? '#ffc043' : '#4CAF50');
+                    const marker = L.circleMarker([geo.lat, geo.lon], {
+                        radius: Math.max(6, Math.min((ip.messageCount || 1) * 2, 15)),
                         fillColor: color,
                         color: color,
                         weight: 2,
@@ -1018,12 +1024,11 @@
                     });
                     
                     marker.bindPopup(`
-                        <div style="color:#000;font-size:0.75rem;font-family:monospace;">
+                        <div style="color:#000;font-size:0.75rem;font-family:'Poppins',sans-serif;">
                             <b>${ip.ip}</b><br>
-                            📍 ${geo.city || 'Unknown'}, ${geo.country || 'Unknown'}<br>
+                            📍 ${geo.city || 'Desconocido'}, ${geo.country || 'Desconocido'}<br>
                             🏢 ${geo.isp || 'N/A'}<br>
-                            📊 ${ip.accessCount} requests<br>
-                            💬 ${ip.messageCount} messages
+                            💬 ${ip.messageCount || 0} mensajes
                         </div>
                     `);
                     
@@ -1031,7 +1036,7 @@
                     marker.addTo(mapInstance);
                     
                     // Estadísticas
-                    countries[geo.country || 'Unknown'] = (countries[geo.country || 'Unknown'] || 0) + 1;
+                    countries[geo.country || 'Desconocido'] = (countries[geo.country || 'Desconocido'] || 0) + 1;
                     if (geo.city) citiesCount.add(geo.city);
                 }
             });
@@ -1063,7 +1068,7 @@
     }
 
     // Inicializar mapa cuando carga el dashboard
-    setHoraout(() => {
+    setTimeout(() => {
         if (document.getElementById('worldMap')) {
             initMap();
         }
