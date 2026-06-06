@@ -4,66 +4,240 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>ACE · Panel de Control</title>
+<title>ACE · Panel de Administración</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
     :root {
-        --bg: #000000;
-        --panel: #0a0a0a;
-        --panel-2: #161616;
-        --border: #2a2a2a;
-        --green: #5AC958;
-        --green-dim: #3a8a38;
-        --text: #ededed;
-        --text-dim: #8a8a8a;
-        --red: #ff4d42;
-        --amber: #ffc043;
-        --blue: #4aa8ff;
-        --mono: 'IBM Plex Mono', monospace;
-        --display: 'Sora', sans-serif;
+        /* Colores de la web ACE */
+        --primary-green: #4CAF50;
+        --dark-bg: #1a1a1a;
+        --text-light: #FFFFFF;
+        --text-dark: #2C2C2C;
+        --gray: #757575;
+        --white: #FFFFFF;
+        
+        /* Admin aliases */
+        --bg: #FFFFFF;
+        --panel: #F8F8F8;
+        --panel-2: #F0F0F0;
+        --border: #E0E0E0;
+        --green: var(--primary-green);
+        --green-dim: #45a049;
+        --text: var(--text-dark);
+        --text-dim: var(--gray);
+        --red: #D32F2F;
+        --amber: #F57C00;
+        --blue: #1976D2;
+        --mono: 'Poppins', sans-serif;
+        --display: 'Poppins', sans-serif;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-        background: #000000;
+        background: #FFFFFF;
         color: var(--text);
         font-family: var(--mono);
         font-size: 14px;
-        line-height: 1.5;
-        background-image:
-            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
+        line-height: 1.6;
         min-height: 100vh;
+        background-image: radial-gradient(circle, var(--primary-green) 1px, transparent 1px);
+        background-size: 50px 50px;
     }
 
     /* ===== LOGIN ===== */
     #login {
         position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-        background: var(--bg); z-index: 1000;
+        background: linear-gradient(135deg, var(--dark-bg) 0%, #2a2a2a 100%);
+        z-index: 1000;
+        overflow: auto;
+    }
+    .login-container {
+        position: relative;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    .login-left {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1;
+        pointer-events: none;
+    }
+    .login-left::before {
+        content: '';
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(76, 175, 80, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        top: -150px;
+        right: -150px;
+    }
+    .login-left::after {
+        content: '';
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(76, 175, 80, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        bottom: -100px;
+        left: -100px;
+    }
+    .login-left-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+    }
+    .login-left-logo {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        font-family: var(--display);
+    }
+    .login-left-logo span {
+        color: var(--primary-green);
+    }
+    .login-left-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        max-width: 300px;
+    }
+    .login-right {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 420px;
     }
     .login-box {
-        background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
-        padding: 2.5rem; width: 90%; max-width: 380px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.04);
+        background: var(--white);
+        border: none;
+        border-radius: 16px;
+        padding: 2.5rem;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
     .login-box h1 {
-        font-family: var(--display); font-size: 1.4rem; margin-bottom: 0.3rem;
-        color: var(--green); letter-spacing: -0.02em;
+        font-family: var(--display);
+        font-size: 1.8rem;
+        margin-bottom: 0.3rem;
+        text-align: center;
+        color: var(--text-dark);
     }
-    .login-box .sub { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 1.8rem; }
+    .login-box h1 span {
+        color: var(--primary-green);
+    }
+    .login-box .sub {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 0.85rem;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
     .login-box input {
-        width: 100%; padding: 0.9rem 1rem; background: var(--bg); border: 1px solid var(--border);
-        border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 0.95rem;
-        margin-bottom: 1rem; transition: border-color 0.2s;
+        width: 100%;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1rem;
+        background: #F5F5F5;
+        border: 1px solid #E0E0E0;
+        color: var(--text-dark);
+        border-radius: 8px;
+        font-family: var(--mono);
+        font-size: 0.9rem;
+        transition: all 0.2s;
     }
-    .login-box input:focus { outline: none; border-color: var(--green); }
+    .login-box input:focus {
+        outline: none;
+        border-color: var(--primary-green);
+        background: var(--white);
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+    .login-box input::placeholder {
+        color: var(--gray);
+    }
     .login-box button {
-        width: 100%; padding: 0.9rem; background: var(--green); color: #07120a; border: none;
-        border-radius: 8px; font-family: var(--mono); font-weight: 700; font-size: 0.9rem;
-        cursor: pointer; letter-spacing: 0.05em; text-transform: uppercase; transition: all 0.2s;
+        width: 100%;
+        padding: 1rem 1.2rem;
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-family: var(--display);
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: 1rem;
+        letter-spacing: 0.5px;
     }
-    .login-box button:hover { background: #6fe06d; box-shadow: 0 0 20px rgba(90,201,88,0.4); }
-    .login-error { color: var(--red); font-size: 0.8rem; margin-top: 0.8rem; min-height: 1rem; }
+    .login-box button:hover {
+        background: var(--green-dim);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(76, 175, 80, 0.25);
+    }
+    .login-box button:active {
+        transform: translateY(0);
+    }
+    .login-error {
+        background: rgba(211, 47, 47, 0.1);
+        border: 1px solid var(--red);
+        color: var(--red);
+        padding: 0.8rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .login-box {
+            padding: 2rem;
+        }
+        .login-left-logo {
+            font-size: 2rem;
+        }
+    }
+
+    /* ===== ANIMATIONS & EFFECTS ===== */
+    @keyframes pulse-glow {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.8; }
+    }
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
 
     /* ===== APP ===== */
     #app { display: none; max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
@@ -74,10 +248,10 @@
     }
     .brand { display: flex; align-items: center; gap: 0.9rem; }
     .brand .dot {
-        width: 10px; height: 10px; border-radius: 50%; background: var(--green);
-        box-shadow: 0 0 12px var(--green); animation: pulse 2s infinite;
+        width: 10px; height: 10px; border-radius: 50%; background: var(--primary-green);
+        box-shadow: 0 0 12px var(--primary-green), 0 0 24px rgba(76, 175, 80, 0.3); 
+        animation: pulse-glow 2s ease-in-out infinite;
     }
-    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
     .brand h1 { font-family: var(--display); font-size: 1.25rem; letter-spacing: -0.02em; }
     .brand span { color: var(--green); }
     .header-meta { display: flex; gap: 1.5rem; align-items: center; font-size: 0.8rem; color: var(--text-dim); flex-wrap: wrap; }
@@ -100,10 +274,15 @@
         gap: 0.9rem; margin-bottom: 1.5rem;
     }
     .stat-card {
-        background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-        padding: 1.1rem; position: relative; overflow: hidden; transition: transform 0.2s, border-color 0.2s;
+        background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+        padding: 1.1rem; position: relative; overflow: hidden; transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    .stat-card:hover { transform: translateY(-2px); border-color: var(--green-dim); }
+    .stat-card:hover { 
+        transform: translateY(-4px); 
+        border-color: var(--primary-green); 
+        box-shadow: 0 12px 30px rgba(76, 175, 80, 0.15);
+    }
     .stat-card .label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
     .stat-card .value { font-size: 2rem; font-weight: 700; font-family: var(--display); line-height: 1; }
     .stat-card.danger .value { color: var(--red); }
@@ -117,11 +296,16 @@
     .grid-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
     @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
     .panel {
-        background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+        background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .panel:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     }
     .panel-head {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); background: var(--panel-2);
+        padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); background: var(--white);
     }
     .panel-head h2 { font-family: var(--display); font-size: 0.95rem; font-weight: 700; }
     .panel-head .count { font-size: 0.75rem; color: var(--text-dim); }
@@ -135,10 +319,20 @@
     .filter-btn {
         padding: 0.3rem 0.7rem; background: var(--bg); border: 1px solid var(--border);
         color: var(--text-dim); border-radius: 5px; font-family: var(--mono); font-size: 0.7rem;
-        cursor: pointer; transition: all 0.15s;
+        cursor: pointer; transition: all 0.3s ease;
     }
-    .filter-btn:hover { border-color: var(--green-dim); color: var(--text); }
-    .filter-btn.active { background: var(--green); color: #07120a; border-color: var(--green); font-weight: 600; }
+    .filter-btn:hover { 
+        border-color: var(--primary-green); 
+        color: var(--text); 
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.1);
+    }
+    .filter-btn.active { 
+        background: var(--primary-green); 
+        color: white; 
+        border-color: var(--primary-green); 
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
+    }
 
     /* ===== LOG ENTRIES ===== */
     .log-entry {
@@ -201,19 +395,75 @@
     }
     .toast.show { transform: translateY(0); }
     .toast.error { border-color: var(--red); color: var(--red); }
+
+    /* ===== MAPA ===== */
+    #worldMap {
+        width: 100%;
+        height: 400px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        margin-bottom: 1.5rem;
+    }
+    .map-panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .map-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .map-stat-card {
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+    }
+    .map-stat-card .value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--green);
+        margin: 0.5rem 0;
+    }
+    .map-stat-card .label {
+        color: var(--text-dim);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="login">
-    <div class="login-box">
-        <h1>ACE<span>·</span>CTRL</h1>
-        <p class="sub">Panel de control — acceso restringido</p>
-        <input type="text" id="usr" placeholder="Usuario" autocomplete="username" onkeypress="if(event.key==='Enter')doLogin()">
-        <input type="password" id="pw" placeholder="Contraseña" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()">
-        <button onclick="doLogin()">Acceder</button>
-        <div class="login-error" id="loginError"></div>
+    <div class="login-container">
+        <!-- BACKGROUND DECORATIONS -->
+        <div class="login-left">
+            <div class="login-left-content">
+                <div class="login-left-logo">ACE<span>·</span></div>
+                <div class="login-left-subtitle">Soluciones Premium de Cuidado de Pisos</div>
+            </div>
+        </div>
+        
+        <!-- LOGIN FORM - CENTERED -->
+        <div class="login-right">
+            <div class="login-box">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <img src="logo-ace.png" alt="ACE Logo" style="height: 70px;">
+                </div>
+                <p class="sub">ADMIN DASHBOARD</p>
+                <input type="text" id="usr" placeholder="Nombre de Usuario" autocomplete="username" onkeypress="if(event.key==='Enter')doLogin()">
+                <input type="password" id="pw" placeholder="Contraseña" autocomplete="current-password" onkeypress="if(event.key==='Enter')doLogin()">
+                <button onclick="doLogin()">Iniciar Sesión</button>
+                <div class="login-error" id="loginError"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -222,32 +472,41 @@
     <header>
         <div class="brand">
             <span class="dot"></span>
-            <h1>ACE<span> ·</span> Panel de Control</h1>
+            <h1>ACE<span> ·</span> Panel de Administración</h1>
         </div>
         <div class="header-meta">
             <span class="live-badge"><span class="dot" style="width:6px;height:6px;"></span> EN VIVO</span>
-            <span>Usuario: <b id="meUser">—</b> <span id="meRole" style="color:var(--green);"></span></span>
-            <span>Uptime: <b id="uptime">—</b></span>
-            <span>IPs activas: <b id="activeIPs">—</b></span>
-            <button class="logout-btn" onclick="logout()">Salir</button>
+            <span>Nombre de Usuario: <b id="meUser">—</b> <span id="meRol" style="color:var(--green);"></span></span>
+            <span>Tiempo de Actividad: <b id="uptime">—</b></span>
+            <span>IPs Activas: <b id="activeIPs">—</b></span>
+            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
         </div>
     </header>
 
     <!-- STATS -->
     <div class="stats-grid" id="statsGrid"></div>
 
+    <!-- THREAT MAP -->
+    <div class="map-panel">
+        <div class="panel-head" style="margin-bottom: 1rem;">
+            <h2>🌍 Conexiones Globales de IP</h2>
+        </div>
+        <div class="map-stats" id="mapStats"></div>
+        <div id="worldMap"></div>
+    </div>
+
     <div class="grid-2">
         <!-- EVENT LOG -->
         <div class="panel">
             <div class="panel-head">
-                <h2>Actividad en vivo</h2>
+                <h2>Actividad en Vivo</h2>
                 <span class="count" id="logCount">0 eventos</span>
             </div>
             <div class="filters" id="logFilters">
                 <button class="filter-btn active" data-type="all" onclick="setFilter('all')">Todos</button>
                 <button class="filter-btn" data-type="message" onclick="setFilter('message')">Mensajes</button>
                 <button class="filter-btn" data-type="ddos" onclick="setFilter('ddos')">DDoS</button>
-                <button class="filter-btn" data-type="block" onclick="setFilter('block')">Bloqueos</button>
+                <button class="filter-btn" data-type="block" onclick="setFilter('block')">Bloquears</button>
                 <button class="filter-btn" data-type="ratelimit" onclick="setFilter('ratelimit')">Rate Limit</button>
                 <button class="filter-btn" data-type="insult" onclick="setFilter('insult')">Insultos</button>
                 <button class="filter-btn" data-type="error" onclick="setFilter('error')">Errores</button>
@@ -266,9 +525,9 @@
     </div>
 
     <!-- MENSAJES DEL CHATBOT -->
-    <div class="panel" id="panelMessages">
+    <div class="panel" id="panelMensajes">
         <div class="panel-head">
-            <h2>Conversaciones del chatbot</h2>
+            <h2>Mensajes del Chatbot</h2>
             <span class="count" id="msgCount">0 mensajes</span>
         </div>
         <div class="panel-body" id="msgBody"></div>
@@ -277,21 +536,30 @@
     <!-- GESTIÓN DE USUARIOS (solo con permiso manage_users) -->
     <div class="panel" id="panelUsers" style="display:none; margin-top:1.2rem;">
         <div class="panel-head">
-            <h2>Usuarios y permisos</h2>
-            <button class="mini-btn" style="border-color:var(--green); color:var(--green);" onclick="openUserModal()">+ Crear usuario</button>
+            <h2>Nombre de Usuarios y permiare</h2>
+            <button class="mini-btn" style="border-color:var(--green); color:var(--green);" onclick="openUserModal()">+ Crear Usuario</button>
         </div>
         <div class="panel-body" id="usersBody"></div>
+    </div>
+
+    <!-- IPs BLOCKEDS (BANEO PERMANENTE) -->
+    <div class="panel" id="panelBanearnedIPs" style="display:none; margin-top:1.2rem;">
+        <div class="panel-head">
+            <h2>🚫 IPs Bloqueadas</h2>
+            <span class="count" id="bloqueadasCount">0 bloqueadas</span>
+        </div>
+        <div class="panel-body" id="bloqueadasIPsBody"></div>
     </div>
 </div>
 
 <!-- MODAL USUARIO -->
 <div id="userModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1500; align-items:center; justify-content:center;">
     <div style="background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:2rem; width:92%; max-width:440px; max-height:90vh; overflow-y:auto;">
-        <h2 id="userModalTitle" style="font-family:var(--display); color:var(--green); margin-bottom:1.2rem;">Crear usuario</h2>
-        <input type="text" id="umUser" placeholder="Nombre de usuario" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:0.8rem;">
-        <input type="password" id="umPass" placeholder="Contraseña (mín 6)" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:0.8rem;">
-        <label style="font-size:0.75rem; color:var(--text-dim); display:block; margin-bottom:0.4rem;">Rol (define permisos base)</label>
-        <select id="umRole" onchange="applyRoleTemplate()" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:1rem;"></select>
+        <h2 id="userModalTitle" style="font-family:var(--display); color:var(--green); margin-bottom:1.2rem;">Crear Usuario</h2>
+        <input type="text" id="umUser" placeholder="Nombre de Usuario" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:0.8rem;">
+        <input type="password" id="umPass" placeholder="Contraseña (min 6)" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:0.8rem;">
+        <label style="font-size:0.75rem; color:var(--text-dim); display:block; margin-bottom:0.4rem;">Rol (define permiare base)</label>
+        <select id="umRol" onchange="applyRolTemplate()" style="width:100%; padding:0.8rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); margin-bottom:1rem;"></select>
         <label style="font-size:0.75rem; color:var(--text-dim); display:block; margin-bottom:0.5rem;">Permisos específicos</label>
         <div id="umPerms" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.3rem;"></div>
         <div style="display:flex; gap:0.6rem;">
@@ -306,11 +574,11 @@
 
 <script>
     let token = sessionStorage.getItem('ace_admin_token') || null;
-    let myPermissions = [];
+    let myPermisos = [];
     let usersData = null;
     let editingUser = null;
     let currentFilter = 'all';
-    let refreshTimer = null;
+    let refreshHorar = null;
 
     async function doLogin() {
         const username = document.getElementById('usr').value.trim();
@@ -320,19 +588,19 @@
         try {
             const res = await fetch('/api/admin/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Tipo': 'application/json' },
                 body: JSON.stringify({ username, password: pw })
             });
             const data = await res.json();
             if (res.ok && data.token) {
                 token = data.token;
-                myPermissions = data.permissions || [];
+                myPermisos = data.permissions || [];
                 sessionStorage.setItem('ace_admin_token', token);
-                sessionStorage.setItem('ace_admin_perms', JSON.stringify(myPermissions));
+                sessionStorage.setItem('ace_admin_perms', JSON.stringify(myPermisos));
                 sessionStorage.setItem('ace_admin_user', data.username);
                 sessionStorage.setItem('ace_admin_role', data.role);
                 document.getElementById('meUser').textContent = data.username;
-                document.getElementById('meRole').textContent = '(' + data.role + ')';
+                document.getElementById('meRol').textContent = '(' + data.role + ')';
                 showApp();
             } else {
                 errEl.textContent = data.error || 'Error de acceso';
@@ -344,29 +612,31 @@
 
     function logout() {
         token = null;
-        myPermissions = [];
+        myPermisos = [];
         sessionStorage.clear();
-        clearInterval(refreshTimer);
+        clearInterval(refreshHorar);
         document.getElementById('app').style.display = 'none';
         document.getElementById('login').style.display = 'flex';
         document.getElementById('pw').value = '';
         document.getElementById('usr').value = '';
     }
 
-    function applyPermissions() {
-        const has = p => myPermissions.includes(p);
-        document.getElementById('panelMessages').style.display = has('view_messages') ? '' : 'none';
+    function applyPermisos() {
+        const has = p => myPermisos.includes(p);
+        document.getElementById('panelMensajes').style.display = has('view_messages') ? '' : 'none';
         document.getElementById('panelUsers').style.display = has('manage_users') ? '' : 'none';
+        document.getElementById('panelBanearnedIPs').style.display = has('manage_ips') ? '' : 'none';
     }
 
     function showApp() {
         document.getElementById('login').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         document.getElementById('meUser').textContent = sessionStorage.getItem('ace_admin_user') || '—';
-        document.getElementById('meRole').textContent = '(' + (sessionStorage.getItem('ace_admin_role') || '') + ')';
-        applyPermissions();
-        refreshAll();
-        refreshTimer = setInterval(refreshAll, 5000);
+        document.getElementById('meRol').textContent = '(' + (sessionStorage.getItem('ace_admin_role') || '') + ')';
+        applyPermisos();
+        setHoraout(() => initMap(), 300);
+        refreshTodos();
+        refreshHorar = setInterval(refreshTodos, 5000);
     }
 
     async function api(path) {
@@ -375,19 +645,21 @@
         return res.json();
     }
 
-    async function refreshAll() {
+    async function refreshTodos() {
         try {
             const tasks = [loadStats(), loadLogs(), loadIPs()];
-            if (myPermissions.includes('view_messages')) tasks.push(loadMessages());
-            if (myPermissions.includes('manage_users')) tasks.push(loadUsers());
+            if (myPermisos.includes('view_messages')) tasks.push(loadMensajes());
+            if (myPermisos.includes('manage_users')) tasks.push(loadUsers());
+            if (myPermisos.includes('manage_ips')) tasks.push(loadBanearnedIPs());
+            if (mapInstance) tasks.push(loadMapData());
             await Promise.all(tasks);
         } catch (e) { /* sesión expirada manejada en api() */ }
     }
 
     const STAT_CARDS = [
-        { key: 'totalRequests', label: 'Requests', cls: '' },
-        { key: 'totalMessages', label: 'Mensajes', cls: 'ok' },
-        { key: 'totalErrors', label: 'Errores', cls: 'danger' },
+        { key: 'totalSolicitudes', label: 'Solicitudes', cls: '' },
+        { key: 'totalMensajes', label: 'Mensajes', cls: 'ok' },
+        { key: 'totalErrores', label: 'Errores', cls: 'danger' },
         { key: 'totalDDoS', label: 'Intentos DDoS', cls: 'danger' },
         { key: 'blockedNow', label: 'IPs bloqueadas', cls: 'danger' },
         { key: 'totalRateLimited', label: 'Rate Limited', cls: 'warn' },
@@ -409,9 +681,9 @@
         `).join('');
     }
 
-    function fmtTime(iso) {
+    function fmtHora(iso) {
         const d = new Date(iso);
-        return d.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        return d.toLocaleHoraString('es-UY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
     function logDetailText(e) {
@@ -430,12 +702,12 @@
 
     async function loadLogs() {
         const data = await api('/api/admin/logs?type=' + currentFilter + '&limit=100');
-        document.getElementById('logCount').textContent = data.events.length + ' eventos';
+        document.getElementById('logCount').textContent = data.eventos.length + ' eventos';
         const body = document.getElementById('logBody');
-        if (!data.events.length) { body.innerHTML = '<div class="empty">Sin eventos registrados</div>'; return; }
-        body.innerHTML = data.events.map(e => `
+        if (!data.eventos.length) { body.innerHTML = '<div class="empty">Sin eventos registrados</div>'; return; }
+        body.innerHTML = data.eventos.map(e => `
             <div class="log-entry">
-                <span class="log-time">${fmtTime(e.timestamp)}</span>
+                <span class="log-time">${fmtHora(e.timestamp)}</span>
                 <span class="log-type ${e.type}">${e.type}</span>
                 <span class="log-detail">${logDetailText(e)}</span>
             </div>
@@ -451,7 +723,7 @@
         const data = await api('/api/admin/ips');
         document.getElementById('ipCount').textContent = data.ips.length + ' IPs';
         const body = document.getElementById('ipBody');
-        if (!data.ips.length) { body.innerHTML = '<div class="empty">Sin conexiones registradas</div>'; return; }
+        if (!data.ips.length) { body.innerHTML = '<div class="empty">No connections</div>'; return; }
         body.innerHTML = data.ips.map(ip => {
             const g = ip.geo || {};
             const blocked = ip.bloqueado || ip.ddosBloqueado;
@@ -461,7 +733,7 @@
                     <span class="ip-addr">${ip.ip}</span>
                     <span>
                         ${ip.ddosBloqueado ? '<span class="badge-ddos">DDoS BAN</span>' : ''}
-                        ${ip.bloqueado ? '<span class="badge-blocked">BLOQUEADA</span>' : ''}
+                        ${ip.bloqueado ? '<span class="badge-blocked">BLOCKED</span>' : ''}
                     </span>
                 </div>
                 <div class="ip-geo">${flag(g.countryCode)} ${g.city || 'N/A'}, ${g.country || 'Desconocido'} · ${g.isp || 'N/A'}</div>
@@ -471,38 +743,39 @@
                     <span>reqs/10s: <b>${ip.requestsInWindow}</b></span>
                 </div>
                 <div class="ip-actions">
-                    ${!myPermissions.includes('manage_ips') ? '' : (blocked
+                    ${!myPermisos.includes('manage_ips') ? '' : (blocked
                         ? `<button class="mini-btn unblock" onclick="unblockIP('${ip.ip}')">Desbloquear</button>`
                         : `<button class="mini-btn block" onclick="blockIP('${ip.ip}')">Bloquear</button>`)}
+                    ${!myPermisos.includes('manage_ips') ? '' : `<button class="mini-btn" style="border-color:var(--red); color:var(--red);" onclick="banIPFromList('${ip.ip}')">🚫 Banearear</button>`}
                 </div>
             </div>`;
         }).join('');
     }
 
-    async function loadMessages() {
+    async function loadMensajes() {
         const data = await api('/api/admin/messages?limit=40');
         document.getElementById('msgCount').textContent = data.messages.length + ' mensajes';
         const body = document.getElementById('msgBody');
         if (!data.messages.length) { body.innerHTML = '<div class="empty">Sin conversaciones aún</div>'; return; }
         body.innerHTML = data.messages.map(m => `
             <div class="msg-entry">
-                <div class="msg-user">${(m.userMessage||'').replace(/</g,'&lt;')}</div>
+                <div class="msg-user">${(m.userMensaje||'').replace(/</g,'&lt;')}</div>
                 <div class="msg-bot">${(m.botResponse||'').replace(/</g,'&lt;')}</div>
-                <div class="msg-meta">${(m.ip||'').replace('::ffff:','')} · ${fmtTime(m.timestamp)} · ${m.tokensUsed || 0} tokens · ${m.intent || 'sin intent'}</div>
+                <div class="msg-meta">${(m.ip||'').replace('::ffff:','')} · ${fmtHora(m.timestamp)} · ${m.tokensUsed || 0} tokens · ${m.intent || 'sin intent'}</div>
             </div>
         `).join('');
     }
 
     function setFilter(type) {
         currentFilter = type;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+        document.querySelectorTodos('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
         loadLogs();
     }
 
     async function post(path, body, method = 'POST') {
         const res = await fetch(path, {
             method: method,
-            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Tipo': 'application/json' },
             body: JSON.stringify(body)
         });
         return res.json();
@@ -524,7 +797,7 @@
         const t = document.getElementById('toast');
         t.textContent = msg;
         t.className = 'toast show' + (ok ? '' : ' error');
-        setTimeout(() => t.className = 'toast' + (ok ? '' : ' error'), 2800);
+        setHoraout(() => t.className = 'toast' + (ok ? '' : ' error'), 2800);
     }
 
     // ===== GESTIÓN DE USUARIOS =====
@@ -538,7 +811,7 @@
             return `
             <div class="ip-row">
                 <div class="ip-top">
-                    <span class="ip-addr">${u.username}${isMe ? ' <span style="color:var(--text-dim);font-size:0.65rem;">(vos)</span>' : ''}</span>
+                    <span class="ip-addr">${u.username}${isMe ? ' <span style="color:var(--text-dim);font-size:0.65rem;">(you)</span>' : ''}</span>
                     <span style="background:rgba(90,201,88,0.12); color:var(--green); font-size:0.62rem; padding:0.15rem 0.5rem; border-radius:10px; font-weight:600;">${u.role}</span>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:0.3rem; margin:0.2rem 0;">${permTags}</div>
@@ -551,9 +824,60 @@
         }).join('');
     }
 
+    async function loadBanearnedIPs() {
+        try {
+            const data = await api('/api/admin/bloqueadas-ips');
+            const body = document.getElementById('bloqueadasIPsBody');
+            if (!data.bloqueadasIPs || !data.bloqueadasIPs.length) { 
+                body.innerHTML = '<div class="empty">✅ Sin IPs bloqueadas</div>'; 
+                document.getElementById('bloqueadasCount').textContent = '0 bloqueadas';
+                return; 
+            }
+            document.getElementById('bloqueadasCount').textContent = `${data.count} bloqueadas`;
+            body.innerHTML = data.bloqueadasIPs.map(item => `
+                <div class="ip-row">
+                    <div class="ip-top">
+                        <span class="ip-addr">${item.ip}</span>
+                        <span style="background:rgba(255,77,66,0.12); color:var(--red); font-size:0.62rem; padding:0.15rem 0.5rem; border-radius:10px; font-weight:600;">BLOQUEADA</span>
+                    </div>
+                    <div class="ip-geo"><strong>Razón:</strong> ${item.reason} · <strong>Por:</strong> ${item.bloqueadasBy}</div>
+                    <div class="ip-geo">BLOQUEADA: ${new Date(item.bloqueadasAt).toLocaleString('es-UY')}</div>
+                    <div class="ip-actions">
+                        <button class="mini-btn unblock" onclick="unbanIPAction('${item.ip}')">Desbloquear</button>
+                    </div>
+                </div>`).join('');
+        } catch (e) {
+            console.error('Error cargando IPs bloqueadas:', e);
+        }
+    }
+
+    async function unbanIPAction(ip) {
+        if (!confirm(`¿Desbloquear ${ip}?`)) return;
+        try {
+            const result = await api('/api/admin/unban-ip', { ip }, 'POST');
+            alert(result.message);
+            loadBanearnedIPs();
+        } catch (e) {
+            alert('Error: ' + e);
+        }
+    }
+
+    async function banIPFromList(ip, reason = '') {
+        reason = prompt(`Razón del baneo para ${ip}:`, reason || 'Comportamiento arepechoso');
+        if (!reason) return;
+        try {
+            const result = await api('/api/admin/ban-ip', { ip, reason }, 'POST');
+            alert(result.message);
+            loadBanearnedIPs();
+            loadIPs();
+        } catch (e) {
+            alert('Error: ' + e);
+        }
+    }
+
     function renderPermCheckboxes(selected) {
         const labels = usersData ? usersData.permissionLabels : {};
-        const perms = usersData ? usersData.availablePermissions : ['view_dashboard','view_messages','manage_ips','manage_users'];
+        const perms = usersData ? usersData.availablePermisos : ['view_dashboard','view_messages','manage_ips','manage_users'];
         document.getElementById('umPerms').innerHTML = perms.map(p => `
             <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; cursor:pointer;">
                 <input type="checkbox" class="perm-cb" value="${p}" ${selected.includes(p) ? 'checked' : ''}>
@@ -562,27 +886,27 @@
         `).join('');
     }
 
-    function fillRoleSelect(current) {
-        const roles = usersData ? usersData.roles : ['superadmin','moderador','visor'];
-        document.getElementById('umRole').innerHTML = roles.map(r => `<option value="${r}" ${r===current?'selected':''}>${r}</option>`).join('');
+    function fillRolSelect(current) {
+        const roles = usersData ? usersData.roles : ['Senior Admin','Moderator','Viewer'];
+        document.getElementById('umRol').innerHTML = roles.map(r => `<option value="${r}" ${r===current?'selected':''}>${r}</option>`).join('');
     }
 
-    function applyRoleTemplate() {
-        const role = document.getElementById('umRole').value;
+    function applyRolTemplate() {
+        const role = document.getElementById('umRol').value;
         const tmpl = (usersData && usersData.roleTemplates[role]) || [];
         renderPermCheckboxes(tmpl);
     }
 
     function openUserModal() {
         editingUser = null;
-        document.getElementById('userModalTitle').textContent = 'Crear usuario';
+        document.getElementById('userModalTitle').textContent = 'Crear Usuario';
         document.getElementById('umUser').value = '';
         document.getElementById('umUser').disabled = false;
         document.getElementById('umPass').value = '';
-        document.getElementById('umPass').placeholder = 'Contraseña (mín 6)';
+        document.getElementById('umPass').placeholder = 'Contraseña (min 6)';
         document.getElementById('umError').textContent = '';
-        fillRoleSelect('visor');
-        applyRoleTemplate();
+        fillRolSelect('Viewer');
+        applyRolTemplate();
         document.getElementById('userModal').style.display = 'flex';
     }
 
@@ -596,7 +920,7 @@
         document.getElementById('umPass').value = '';
         document.getElementById('umPass').placeholder = 'Nueva contraseña (vacío = sin cambio)';
         document.getElementById('umError').textContent = '';
-        fillRoleSelect(u.role);
+        fillRolSelect(u.role);
         renderPermCheckboxes(u.permissions);
         document.getElementById('userModal').style.display = 'flex';
     }
@@ -608,8 +932,8 @@
     async function saveUser() {
         const username = document.getElementById('umUser').value.trim();
         const password = document.getElementById('umPass').value;
-        const role = document.getElementById('umRole').value;
-        const permissions = Array.from(document.querySelectorAll('.perm-cb:checked')).map(c => c.value);
+        const role = document.getElementById('umRol').value;
+        const permissions = Array.from(document.querySelectorTodos('.perm-cb:checked')).map(c => c.value);
         const errEl = document.getElementById('umError');
         errEl.textContent = '';
 
@@ -619,7 +943,7 @@
             if (password) bodyObj.password = password;
             res = await post('/api/admin/users/' + encodeURIComponent(editingUser), bodyObj, 'PUT');
         } else {
-            if (!username || !password) { errEl.textContent = 'Usuario y contraseña requeridos'; return; }
+            if (!username || !password) { errEl.textContent = 'Nombre de Usuario y contraseña requeridos'; return; }
             res = await post('/api/admin/users', { username, password, role, permissions }, 'POST');
         }
         if (res.success) {
@@ -638,9 +962,116 @@
         loadUsers();
     }
 
+    // ===== MAPA MUNDIAL =====
+    let mapInstance = null;
+    let mapMarkers = [];
+
+    async function initMap() {
+        // Cargar Leaflet
+        const leafletScript = document.createElement('script');
+        leafletScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+        leafletScript.onload = () => {
+            // Create mapa
+            mapInstance = L.map('worldMap', {
+                center: [20, 0],
+                zoom: 2,
+                dragging: true,
+                zoomControl: true,
+                attributionControl: false
+            });
+            
+            // Tile layer oscuro
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19
+            }).addTo(mapInstance);
+            
+            loadMapData();
+        };
+        document.head.appendChild(leafletScript);
+    }
+
+    async function loadMapData() {
+        try {
+            const data = await api('/api/admin/ips');
+            if (!data.ips || !mapInstance) return;
+            
+            // Limpiar marcadores anteriores
+            mapMarkers.forEach(m => mapInstance.removeLayer(m));
+            mapMarkers = [];
+            
+            // Estadísticas del mapa
+            const countries = {};
+            const citiesCount = new Set();
+            
+            data.ips.forEach(ip => {
+                const geo = ip.geo || {};
+                if (geo.latitude && geo.longitude) {
+                    // Create marcador
+                    const color = ip.ddosBloqueado ? '#ff4d42' : (ip.bloqueado ? '#ffc043' : '#5AC958');
+                    const marker = L.circleMarker([geo.latitude, geo.longitude], {
+                        radius: Math.min(ip.accessCount / 5, 15),
+                        fillColor: color,
+                        color: color,
+                        weight: 2,
+                        opacity: 0.8,
+                        fillOpacity: 0.6
+                    });
+                    
+                    marker.bindPopup(`
+                        <div style="color:#000;font-size:0.75rem;font-family:monospace;">
+                            <b>${ip.ip}</b><br>
+                            📍 ${geo.city || 'Unknown'}, ${geo.country || 'Unknown'}<br>
+                            🏢 ${geo.isp || 'N/A'}<br>
+                            📊 ${ip.accessCount} requests<br>
+                            💬 ${ip.messageCount} messages
+                        </div>
+                    `);
+                    
+                    mapMarkers.push(marker);
+                    marker.addTo(mapInstance);
+                    
+                    // Estadísticas
+                    countries[geo.country || 'Unknown'] = (countries[geo.country || 'Unknown'] || 0) + 1;
+                    if (geo.city) citiesCount.add(geo.city);
+                }
+            });
+            
+            // Mostrar stats
+            const topCountry = Object.entries(countries).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('mapStats').innerHTML = `
+                <div class="map-stat-card">
+                    <div class="label">IPs Totales</div>
+                    <div class="value">${data.ips.length}</div>
+                </div>
+                <div class="map-stat-card">
+                    <div class="label">Países</div>
+                    <div class="value">${Object.keys(countries).length}</div>
+                </div>
+                <div class="map-stat-card">
+                    <div class="label">Ciudades</div>
+                    <div class="value">${citiesCount.size}</div>
+                </div>
+                <div class="map-stat-card">
+                    <div class="label">País Principal</div>
+                    <div class="value" style="font-size:1rem;">${topCountry ? topCountry[0] : 'N/A'}</div>
+                </div>
+            `;
+            
+        } catch (e) {
+            console.error('Error loading map data:', e);
+        }
+    }
+
+    // Inicializar mapa cuando carga el dashboard
+    setHoraout(() => {
+        if (document.getElementById('worldMap')) {
+            initMap();
+        }
+    }, 500);
+
     // Auto-login si hay token guardado
     if (token) {
-        myPermissions = JSON.parse(sessionStorage.getItem('ace_admin_perms') || '[]');
+        myPermisos = JSON.parse(sessionStorage.getItem('ace_admin_perms') || '[]');
         fetch('/api/admin/stats', { headers: { 'Authorization': 'Bearer ' + token } })
             .then(r => { if (r.ok) showApp(); else { sessionStorage.clear(); token = null; } })
             .catch(() => {});
