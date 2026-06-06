@@ -19,11 +19,10 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "@anthropic-ai/sdk": "^0.24.3",
     "dotenv": "^16.4.5",
     "cors": "^2.8.5"
   },
   "engines": {
-    "node": "18.0.0"
+    "node": ">=18"
   }
 }

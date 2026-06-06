@@ -1,8 +1,7 @@
 // server.js - Backend para ACE Corporation con Chatbot IA
-// npm install express anthropic dotenv cors
+// npm install express dotenv cors  (SIN IA - sin API key)
 
 const express = require('express');
-const { Anthropic } = require('@anthropic-ai/sdk');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const crypto = require('crypto');
@@ -429,66 +428,31 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
-        // Crear conversación con historial (validado)
-        const messages = history
-            .filter(msg => msg && msg.role && msg.content && typeof msg.content === 'string')
-            .map(msg => ({
-                role: msg.role === 'user' || msg.role === 'assistant' ? msg.role : 'user',
-                content: msg.content.trim().slice(0, 500)
-            }));
+        // ===== SIN IA: el bot responde directamente en el navegador (cliente). =====
+        // Este endpoint NO usa Claude ni API key: solo registra el mensaje
+        // para que el panel de admin tenga analítica (mensajes, IPs, abusos).
+        const clientReply = (typeof req.body.reply === 'string') ? req.body.reply.slice(0, 200) : '';
 
-        let userMessage = message;
-        if (intent) {
-            userMessage = `[INTENT: ${intent}] ${message}`;
-        }
-        messages.push({ role: 'user', content: userMessage });
+        console.log(`✅ Mensaje registrado | Intent: ${intent} | IP: ${clientIp}`);
 
-        // Llamar a Claude con timeout (30s)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-        
-        let botResponse;
-        let tokensUsed = 0;
-        try {
-            const response = await client.messages.create({
-                model: 'claude-3-5-sonnet-20241022',
-                max_tokens: 150,
-                system: SYSTEM_PROMPT,
-                messages: messages
-            });
-            botResponse = response.content[0].text;
-            tokensUsed = response.usage ? response.usage.output_tokens : 0;
-        } finally {
-            clearTimeout(timeoutId);
-        }
-        
-        // VALIDAR salida (rechazar alucinaciones)
-        if (!validateResponse(botResponse)) {
-            console.warn('⚠️ Alucinación detectada, usando fallback');
-            botResponse = "No tengo esa información. Llamá al 2915-6686 para consultas personalizadas.";
-        }
-        
-        console.log(`✅ Respuesta: "${botResponse}" | Tokens: ${tokensUsed} | IP: ${clientIp}`);
-
-        // LOG mensaje exitoso
+        // LOG mensaje
         systemLogs.stats.totalMessages++;
         const chatLog = {
             id: Date.now() + Math.random().toString(36).slice(2, 6),
             ip: clientIp,
             userMessage: message.slice(0, 200),
-            botResponse: botResponse.slice(0, 200),
+            botResponse: clientReply || '(respuesta generada en el navegador)',
             intent: intent,
-            tokensUsed: tokensUsed,
+            tokensUsed: 0,
             timestamp: new Date().toISOString()
         };
         systemLogs.chatMessages.unshift(chatLog);
         if (systemLogs.chatMessages.length > MAX_LOG_ENTRIES) systemLogs.chatMessages.pop();
-        addLog('message', clientIp, { intent, tokens: tokensUsed });
+        addLog('message', clientIp, { intent, tokens: 0 });
         geolocateIP(clientIp);
 
         res.json({
-            response: botResponse,
-            status: 'success',
+            status: 'logged',
             intent: intent,
             rateLimit: {
                 remaining: Math.max(0, MAX_MESSAGES_PER_MINUTE - ipStatus.messageCount),
@@ -849,5 +813,5 @@ app.get('/api/health', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 ACE Corporation Chatbot corriendo en puerto ${PORT}`);
-    console.log(`📝 Asegúrate de tener ANTHROPIC_API_KEY en .env`);
+    console.log(`📝 Chatbot en modo local (sin IA / sin API key). Admin en /admin`);
 });

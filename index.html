@@ -2867,8 +2867,22 @@
             }
         }
 
-        console.log("%c ACE Chatbot v3 — anti-cuelgue activo (timeout 10s + fallback)", "background:#1B5E20;color:#5AC958;padding:4px 8px;border-radius:4px;font-weight:bold;");
-        let chatHistory = [];
+        console.log("%c ACE Chatbot v4 — modo local sin IA (respuestas instantáneas, sin API key)", "background:#000;color:#5AC958;padding:4px 8px;border-radius:4px;font-weight:bold;");
+
+        function normalizeText(text) {
+            return (text || "")
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/0/g, "o").replace(/1/g, "i").replace(/3/g, "e").replace(/4/g, "a").replace(/5/g, "s").replace(/7/g, "t")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function isOutOfScope(text) {
+            const n = normalizeText(text);
+            const fuera = ['futbol','politica','chiste','receta','cocina','matematica','codigo','programar','python','javascript','juego','musica','cancion','pelicula','cine','clima','noticias','bitcoin','crypto','bolsa','amor','novia','novio','viaje','turismo','hotel','restaurante','pizza','medicina','doctor','enfermedad','covid','vacuna','droga'];
+            return fuera.some(w => n.includes(w));
+        }
 
         const responseBank = {
             insulto: [
@@ -3034,7 +3048,7 @@
             return getRandomResponse('no_entiendo');
         }
 
-        async function sendMessage(text) {
+        function sendMessage(text) {
             const input = document.getElementById("chatInput");
             const message = (text || input.value).trim();
             if (!message) return;
@@ -3048,52 +3062,32 @@
             messagesDiv.appendChild(userMsg);
             input.value = "";
 
-            chatHistory.push({ role: "user", content: message });
-            if (chatHistory.length > 12) chatHistory = chatHistory.slice(-12);
-
             const typing = document.createElement("div");
             typing.className = "chat-msg bot-msg";
             typing.textContent = "Escribiendo...";
             messagesDiv.appendChild(typing);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-            let reply = null;
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 10000); // 10s máximo
-
-            try {
-                const res = await fetch("/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message, history: chatHistory }),
-                    signal: controller.signal
-                });
-
-                if (res.status === 429) {
-                    reply = "Estás enviando demasiados mensajes. Esperá un minuto antes de continuar.";
-                } else if (res.status === 403) {
-                    reply = "Tu acceso fue bloqueado por seguridad. Contactá: 2915-6686 o ace@ace.com.uy";
-                } else if (res.ok) {
-                    let data = null;
-                    try { data = await res.json(); } catch (_) { data = null; }
-                    reply = (data && data.response) ? data.response : botFallback(message);
-                } else {
-                    reply = botFallback(message);
-                }
-            } catch (e) {
-                // Timeout, sin servidor Node, o error de red -> respuesta local
-                reply = botFallback(message);
-            } finally {
-                clearTimeout(timeout);
+            // Respuesta local instantánea (sin IA, sin servidor, sin API key)
+            // Micro-delay de 400ms solo para que se sienta natural
+            setTimeout(() => {
                 typing.remove();
-            }
+                const reply = botFallback(message);
+                const botMsg = document.createElement("div");
+                botMsg.className = "chat-msg bot-msg";
+                botMsg.textContent = reply;
+                messagesDiv.appendChild(botMsg);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-            const botMsg = document.createElement("div");
-            botMsg.className = "chat-msg bot-msg";
-            botMsg.textContent = reply || "Disculpá, tuve un problema para responder. Llamanos al 2915-6686 o WhatsApp 096-41-9412.";
-            messagesDiv.appendChild(botMsg);
-            chatHistory.push({ role: "assistant", content: botMsg.textContent });
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                // Log silencioso para el panel admin (fire-and-forget, nunca bloquea la UI)
+                try {
+                    fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: message, reply: reply })
+                    }).catch(() => {});
+                } catch (e) {}
+            }, 400);
         }
 
         // STICKY BAR - MOSTRAR DESPUÉS DE GALERÍA (UX ÓPTIMA)
