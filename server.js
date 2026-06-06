@@ -1071,6 +1071,12 @@ app.get('/api/admin/banned-ips', adminAuth, requirePermission('manage_ips'), (re
 
 // Servir dashboard admin
 app.get('/admin', (req, res) => {
+    res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+    });
     res.sendFile(__dirname + '/admin.html');
 });
 
