@@ -48,8 +48,7 @@ const DDOS_BAN_DURATION = 86400000; // 24 horas
 function checkDDoS(ip) {
     if (!ipBehavior.has(ip)) {
         ipBehavior.set(ip, { 
-            messageCount: 0, 
-            insultos: 0, 
+            messageCount: 0,
             lastMessage: Date.now(), 
             bloqueado: false,
             requestTimes: [],
@@ -88,9 +87,8 @@ function checkDDoS(ip) {
 }
 
 // ===== RATE LIMITING + IP BANNING =====
-const ipBehavior = new Map(); // { ip: { messageCount, insultos, lastMessage, bloqueado } }
+const ipBehavior = new Map(); // { ip: { messageCount, lastMessage, bloqueado, ddosBloqueado } }
 const MAX_MESSAGES_PER_MINUTE = 10;
-const MAX_INSULTS_BEFORE_BAN = 5;
 const BAN_DURATION_MS = 3600000; // 1 hora
 
 function getClientIp(req) {
@@ -105,15 +103,14 @@ function isIPBlocked(ip) {
     }
     if (behavior.bloqueado && Date.now() - behavior.bannedAt >= BAN_DURATION_MS) {
         behavior.bloqueado = false;
-        behavior.insultos = 0;
         behavior.messageCount = 0;
     }
     return false;
 }
 
-function updateIPBehavior(ip, messageLength, isInsult) {
+function updateIPBehavior(ip, messageLength) {
     if (!ipBehavior.has(ip)) {
-        ipBehavior.set(ip, { messageCount: 0, insultos: 0, lastMessage: Date.now(), bloqueado: false });
+        ipBehavior.set(ip, { messageCount: 0, lastMessage: Date.now(), bloqueado: false });
     }
     const behavior = ipBehavior.get(ip);
     const now = Date.now();
@@ -125,16 +122,6 @@ function updateIPBehavior(ip, messageLength, isInsult) {
 
     behavior.messageCount++;
     behavior.lastMessage = now;
-
-    if (isInsult) {
-        behavior.insultos++;
-        console.warn(`⚠️ IP ${ip}: insulto #${behavior.insultos}`);
-        if (behavior.insultos >= MAX_INSULTS_BEFORE_BAN) {
-            behavior.bloqueado = true;
-            behavior.bannedAt = now;
-            console.error(`🚫 IP ${ip} BLOQUEADA por ${MAX_INSULTS_BEFORE_BAN}+ insultos`);
-        }
-    }
 
     return {
         messageCount: behavior.messageCount,
@@ -210,6 +197,100 @@ async function geolocateIP(ip) {
     return unknown;
 }
 
+// ===== REGISTRO PERSISTENTE DE IPS (archivo) =====
+const IP_LOG_FILE = 'ips-log.json';
+let ipLog = {}; // { ip: { firstSeen, lastSeen, accessCount, geo } }
+
+function loadIPLog() {
+    try {
+        if (fs.existsSync(IP_LOG_FILE)) {
+            const data = fs.readFileSync(IP_LOG_FILE, 'utf8');
+            ipLog = JSON.parse(data);
+            console.log(`✅ Cargué registro de IPs (${Object.keys(ipLog).length} únicas)`);
+        }
+    } catch (e) {
+        console.error('Error cargando IP log:', e.message);
+        ipLog = {};
+    }
+}
+
+function saveIPLog() {
+    try {
+        fs.writeFileSync(IP_LOG_FILE, JSON.stringify(ipLog, null, 2));
+    } catch (e) {
+        console.error('Error guardando IP log:', e.message);
+    }
+}
+
+async function logIPAccess(ip) {
+    if (!ipLog[ip]) {
+        const geo = await geolocateIP(ip);
+        ipLog[ip] = {
+            firstSeen: new Date().toISOString(),
+            accessCount: 0,
+            country: geo.country,
+            city: geo.city,
+            isp: geo.isp || 'N/A'
+        };
+    }
+    ipLog[ip].lastSeen = new Date().toISOString();
+    ipLog[ip].accessCount = (ipLog[ip].accessCount || 0) + 1;
+    saveIPLog();
+}
+
+// ===== BLOQUEO PERSISTENTE DE IPS =====
+const BLOCKED_IPS_FILE = 'blocked-ips.json';
+let blockedIPs = {}; // { ip: { bannedAt, reason, bannedBy } }
+
+function loadBlockedIPs() {
+    try {
+        if (fs.existsSync(BLOCKED_IPS_FILE)) {
+            const data = fs.readFileSync(BLOCKED_IPS_FILE, 'utf8');
+            blockedIPs = JSON.parse(data);
+            console.log(`✅ Cargué IPs bloqueadas (${Object.keys(blockedIPs).length} baneadas)`);
+        }
+    } catch (e) {
+        console.error('Error cargando blocked IPs:', e.message);
+        blockedIPs = {};
+    }
+}
+
+function saveBlockedIPs() {
+    try {
+        fs.writeFileSync(BLOCKED_IPS_FILE, JSON.stringify(blockedIPs, null, 2));
+    } catch (e) {
+        console.error('Error guardando blocked IPs:', e.message);
+    }
+}
+
+function isIPBanned(ip) {
+    return blockedIPs.hasOwnProperty(ip);
+}
+
+function banIP(ip, reason = 'Bloqueado por admin', bannedBy = 'admin') {
+    blockedIPs[ip] = {
+        bannedAt: new Date().toISOString(),
+        reason: reason,
+        bannedBy: bannedBy
+    };
+    saveBlockedIPs();
+    console.log(`🚫 IP ${ip} BANEADA: ${reason}`);
+}
+
+function unbanIP(ip) {
+    delete blockedIPs[ip];
+    saveBlockedIPs();
+    console.log(`✅ IP ${ip} desbaneada`);
+}
+
+function getRoleDisplayName(role) {
+    const roleMap = {
+        'superadmin': 'Senior Admin',
+        'moderador': 'Moderator',
+        'visor': 'Viewer'
+    };
+    return roleMap[role] || role;
+}
 
 function normalizeMessage(text) {
     // Reemplazar números por letras comunes (typos)
@@ -270,12 +351,6 @@ function isOutOfScope(text) {
 
 function getOutOfScopeResponse() {
     return "Solo puedo ayudarte con presupuestos, horarios, servicios (Pulido, Plastificado, Hidrolaqueado, Parquet) y ubicación de ACE. ¿Necesitas alguno de estos?";
-}
-
-function detectInsult(text) {
-    const normalized = normalizeMessage(text);
-    const insults = ['idiota', 'tonto', 'boludo', 'pelotudo', 'estupido', 'estúpido', 'burro', 'imbecil', 'imbécil', 'pendejo', 'basura', 'mierda', 'put', 'forro', 'sorete', 'gil'];
-    return insults.some(word => normalized.includes(word));
 }
 
 function validateResponse(response) {
@@ -342,6 +417,21 @@ app.post('/api/chat', async (req, res) => {
     const clientIp = getClientIp(req);
     systemLogs.stats.totalRequests++;
     
+    // CHECK BANEO INMEDIATO
+    if (isIPBanned(clientIp)) {
+        console.error(`🚫 IP BANEADA: ${clientIp}`);
+        systemLogs.stats.totalBlocked++;
+        addLog('banned', clientIp, { reason: blockedIPs[clientIp].reason });
+        return res.status(403).json({
+            error: 'Tu IP está bloqueada',
+            message: `Razón: ${blockedIPs[clientIp].reason}`,
+            bannedAt: blockedIPs[clientIp].bannedAt
+        });
+    }
+    
+    // Log IP access (fire-and-forget, never blocks)
+    logIPAccess(clientIp).catch(() => {});
+    
     // CHECK DDOS PRIMERO (antes que todo)
     const ddosCheck = checkDDoS(clientIp);
     if (ddosCheck.isDDoS) {
@@ -377,20 +467,12 @@ app.post('/api/chat', async (req, res) => {
         if (history.length > 20) {
             history = history.slice(-20);
         }
-
-        // DETECTAR INSULTOS
-        const normalized = normalizeMessage(message);
-        const isInsult = detectInsult(normalized);
-        if (isInsult) {
-            systemLogs.stats.totalInsults++;
-            addLog('insult', clientIp, { message: message.slice(0, 100) });
-        }
         
         // VALIDAR IP (bloqueada, rate limit)
         if (isIPBlocked(clientIp)) {
             console.warn(`🚫 Acceso denegado a IP bloqueada: ${clientIp}`);
             systemLogs.stats.totalBlocked++;
-            addLog('block', clientIp, { reason: 'IP bloqueada por abuso (insultos)' });
+            addLog('block', clientIp, { reason: 'IP bloqueada por abuso (rate limit)' });
             geolocateIP(clientIp);
             return res.status(403).json({
                 error: 'IP bloqueada por comportamiento abusivo',
@@ -398,7 +480,7 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
-        const ipStatus = updateIPBehavior(clientIp, message.length, isInsult);
+        const ipStatus = updateIPBehavior(clientIp, message.length);
         
         if (ipStatus.isRateLimited) {
             console.warn(`⏱️ Rate limit para IP ${clientIp}: ${ipStatus.messageCount} mensajes en 1 min`);
@@ -451,7 +533,7 @@ app.post('/api/chat', async (req, res) => {
         addLog('message', clientIp, { intent, tokens: 0 });
         geolocateIP(clientIp);
 
-        res.json({
+        return res.json({
             status: 'logged',
             intent: intent,
             rateLimit: {
@@ -530,9 +612,12 @@ function verifyPassword(password, stored) {
     }
 }
 
-// Inicializar: crear superadmin por defecto si no hay usuarios
+// Inicializar: crear/sincronizar superadmin con ADMIN_PASSWORD en cada arranque
 loadUsers();
-if (Object.keys(users).length === 0) {
+loadIPLog();
+loadBlockedIPs();
+if (!users['admin']) {
+    // No existe: crearlo
     users['admin'] = {
         passwordHash: hashPassword(ADMIN_PASSWORD),
         role: 'superadmin',
@@ -541,7 +626,14 @@ if (Object.keys(users).length === 0) {
         createdBy: 'sistema'
     };
     saveUsers();
-    console.log('✅ Usuario superadmin "admin" creado (contraseña = ADMIN_PASSWORD del .env)');
+    console.log('✅ Usuario superadmin "admin" creado (contraseña = ADMIN_PASSWORD)');
+} else {
+    // Ya existe: re-sincronizar la contraseña con ADMIN_PASSWORD por si cambió
+    users['admin'].passwordHash = hashPassword(ADMIN_PASSWORD);
+    users['admin'].role = 'superadmin';
+    users['admin'].permissions = ROLES.superadmin;
+    saveUsers();
+    console.log('🔄 Contraseña del admin sincronizada con ADMIN_PASSWORD');
 }
 
 function generateToken() {
@@ -605,7 +697,7 @@ app.post('/api/admin/login', (req, res) => {
     res.json({
         token,
         username,
-        role: user.role,
+        role: getRoleDisplayName(user.role),
         permissions: user.permissions,
         expiresIn: ADMIN_SESSION_DURATION
     });
@@ -616,7 +708,7 @@ app.post('/api/admin/login', (req, res) => {
 app.get('/api/admin/users', adminAuth, requirePermission('manage_users'), (req, res) => {
     const list = Object.entries(users).map(([username, u]) => ({
         username,
-        role: u.role,
+        role: getRoleDisplayName(u.role),
         permissions: u.permissions || [],
         createdAt: u.createdAt,
         createdBy: u.createdBy
@@ -625,7 +717,7 @@ app.get('/api/admin/users', adminAuth, requirePermission('manage_users'), (req, 
         users: list,
         availablePermissions: PERMISSIONS,
         permissionLabels: PERMISSION_LABELS,
-        roles: Object.keys(ROLES),
+        roles: Object.keys(ROLES).map(getRoleDisplayName),
         roleTemplates: ROLES,
         currentUser: req.user.username
     });
@@ -783,6 +875,58 @@ app.post('/api/admin/block', adminAuth, requirePermission('manage_ips'), (req, r
     console.log(`🚫 IP ${ip} bloqueada manualmente por admin`);
     addLog('block', ip, { event: 'Bloqueada manualmente por admin' });
     res.json({ success: true, message: `IP ${ip} bloqueada` });
+});
+
+// ===== BANEO PERSISTENTE (bloqueado-ips.json) =====
+
+// Banear IP permanentemente
+app.post('/api/admin/ban-ip', adminAuth, requirePermission('manage_ips'), (req, res) => {
+    const { ip, reason } = req.body;
+    if (!ip) {
+        return res.status(400).json({ error: 'IP requerida' });
+    }
+    
+    banIP(ip, reason || 'Baneada por admin', req.user?.username || 'admin');
+    
+    res.json({
+        success: true,
+        message: `IP ${ip} baneada permanentemente`,
+        bannedAt: blockedIPs[ip].bannedAt,
+        reason: blockedIPs[ip].reason
+    });
+});
+
+// Desbanear IP
+app.post('/api/admin/unban-ip', adminAuth, requirePermission('manage_ips'), (req, res) => {
+    const { ip } = req.body;
+    if (!ip) {
+        return res.status(400).json({ error: 'IP requerida' });
+    }
+    
+    if (!isIPBanned(ip)) {
+        return res.status(404).json({ error: 'IP no está baneada' });
+    }
+    
+    unbanIP(ip);
+    
+    res.json({
+        success: true,
+        message: `IP ${ip} desbaneada`
+    });
+});
+
+// Obtener lista de IPs baneadas
+app.get('/api/admin/banned-ips', adminAuth, requirePermission('view_ips'), (req, res) => {
+    const banned = Object.entries(blockedIPs).map(([ip, data]) => ({
+        ip,
+        ...data
+    }));
+    
+    res.json({
+        success: true,
+        count: banned.length,
+        bannedIPs: banned
+    });
 });
 
 // Servir dashboard admin
