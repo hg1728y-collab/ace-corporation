@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
     :root {
@@ -399,21 +398,79 @@
     /* ===== MAPA ===== */
     #worldMap {
         width: 100%;
-        height: 400px;
         border-radius: 10px;
         border: 1px solid var(--border);
-        background: #e8e8e8;
+        background: #0d1b2a;
         margin-bottom: 1.5rem;
-        position: relative;
-        z-index: 1;
         overflow: hidden;
+        position: relative;
     }
-    .leaflet-container {
-        background: #e8e8e8 !important;
-        font-family: var(--mono) !important;
+    .map-inner {
+        position: relative;
+        width: 100%;
+        padding-top: 50%; /* ratio 2:1 equirectangular */
+        background-image: url('https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        filter: grayscale(0.3) brightness(0.9);
     }
-    .leaflet-control-zoom a {
-        color: var(--text-dark) !important;
+    .map-points {
+        position: absolute;
+        inset: 0;
+    }
+    .map-empty {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        color: rgba(255,255,255,0.85);
+        background: rgba(0,0,0,0.5);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+    .ip-dot {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        border: 2px solid #fff;
+        box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    }
+    .ip-dot::after {
+        content: '';
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        background: inherit;
+        opacity: 0.35;
+        animation: dotPulse 2s ease-in-out infinite;
+        z-index: -1;
+    }
+    @keyframes dotPulse {
+        0%, 100% { transform: scale(1); opacity: 0.35; }
+        50% { transform: scale(1.8); opacity: 0; }
+    }
+    .ip-dot .ip-tooltip {
+        position: absolute;
+        bottom: 150%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1a1a;
+        color: #fff;
+        padding: 0.5rem 0.7rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .ip-dot:hover .ip-tooltip {
+        opacity: 1;
     }
     .map-panel {
         background: var(--panel);
@@ -502,7 +559,12 @@
             <h2>🌍 Conexiones Globales de IP</h2>
         </div>
         <div class="map-stats" id="mapStats"></div>
-        <div id="worldMap"></div>
+        <div id="worldMap">
+            <div class="map-inner" id="mapInner">
+                <div class="map-points" id="mapPoints"></div>
+                <div class="map-empty" id="mapEmpty">Sin conexiones registradas todavía</div>
+            </div>
+        </div>
     </div>
 
     <div class="grid-2">
@@ -660,7 +722,7 @@
             if (myPermisos.includes('view_messages')) tasks.push(loadMensajes());
             if (myPermisos.includes('manage_users')) tasks.push(loadUsers());
             if (myPermisos.includes('manage_ips')) tasks.push(loadBanearnedIPs());
-            if (mapInstance) tasks.push(loadMapData());
+            tasks.push(loadMapData());
             await Promise.all(tasks);
         } catch (e) { /* sesión expirada manejada en api() */ }
     }
@@ -977,122 +1039,57 @@
         loadUsers();
     }
 
-    // ===== MAPA MUNDIAL =====
-    let mapInstance = null;
-    let mapMarkers = [];
-
+    // ===== MAPA MUNDIAL (imagen + puntos, sin Leaflet) =====
+    // initMap solo dispara la carga de datos; no hay tiles ni librería externa
     async function initMap() {
-        // Prevenir doble inicialización
-        if (mapInstance) {
-            mapInstance.invalidateSize();
-            return;
-        }
-        // Si Leaflet ya está cargado, usar directo
-        if (window.L) {
-            buildMap();
-            return;
-        }
-        // Cargar Leaflet
-        const leafletScript = document.createElement('script');
-        leafletScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-        leafletScript.onload = () => buildMap();
-        document.head.appendChild(leafletScript);
+        loadMapData();
     }
 
-    function buildMap() {
-        const mapEl = document.getElementById('worldMap');
-        if (!mapEl || mapInstance) return;
-
-        mapInstance = L.map('worldMap', {
-            center: [20, 0],
-            zoom: 2,
-            minZoom: 1,
-            dragging: true,
-            zoomControl: true,
-            attributionControl: false,
-            worldCopyJump: true
-        });
-
-        // Tile layer claro (combina con dashboard blanco)
-        const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            subdomains: 'abcd'
-        });
-        tiles.addTo(mapInstance);
-
-        // FIX renderizado: recalcular tamaño en varios momentos
-        const refresh = () => {
-            if (!mapInstance) return;
-            mapInstance.invalidateSize(true);
-            mapInstance.setView([20, 0], 2);
-        };
-        tiles.on('load', () => mapInstance.invalidateSize(true));
-        requestAnimationFrame(refresh);
-        setTimeout(refresh, 100);
-        setTimeout(refresh, 400);
-        setTimeout(refresh, 1000);
-
-        // ResizeObserver: recalcula cuando el contenedor cambia de tamaño
-        if (window.ResizeObserver) {
-            const ro = new ResizeObserver(() => {
-                if (mapInstance) mapInstance.invalidateSize(true);
-            });
-            ro.observe(mapEl);
-        }
-        // También al cambiar tamaño de ventana
-        window.addEventListener('resize', () => {
-            if (mapInstance) mapInstance.invalidateSize(true);
-        });
-
-        loadMapData();
+    // Proyección equirectangular: lat/lon -> % sobre la imagen
+    function projectLatLon(lat, lon) {
+        const x = (lon + 180) / 360 * 100;
+        const y = (90 - lat) / 180 * 100;
+        return { x, y };
     }
 
     async function loadMapData() {
         try {
             const data = await api('/api/admin/ips');
-            if (!data.ips || !mapInstance) return;
-            
-            // Limpiar marcadores anteriores
-            mapMarkers.forEach(m => mapInstance.removeLayer(m));
-            mapMarkers = [];
-            
-            // Estadísticas del mapa
+            const pointsEl = document.getElementById('mapPoints');
+            const emptyEl = document.getElementById('mapEmpty');
+            if (!data.ips || !pointsEl) return;
+
             const countries = {};
             const citiesCount = new Set();
-            
+            let dots = '';
+            let plotted = 0;
+
             data.ips.forEach(ip => {
                 const geo = ip.geo || {};
-                // El servidor manda lat/lon (no latitude/longitude). Excluir 0,0 (locales/desconocidos)
+                // El servidor manda lat/lon. Excluir 0,0 (locales/desconocidos)
                 if (geo.lat && geo.lon && !(geo.lat === 0 && geo.lon === 0)) {
                     const color = ip.ddosBloqueado ? '#ff4d42' : (ip.bloqueado ? '#ffc043' : '#4CAF50');
-                    const marker = L.circleMarker([geo.lat, geo.lon], {
-                        radius: Math.max(6, Math.min((ip.messageCount || 1) * 2, 15)),
-                        fillColor: color,
-                        color: color,
-                        weight: 2,
-                        opacity: 0.8,
-                        fillOpacity: 0.6
-                    });
-                    
-                    marker.bindPopup(`
-                        <div style="color:#000;font-size:0.75rem;font-family:'Poppins',sans-serif;">
-                            <b>${ip.ip}</b><br>
-                            📍 ${geo.city || 'Desconocido'}, ${geo.country || 'Desconocido'}<br>
-                            🏢 ${geo.isp || 'N/A'}<br>
-                            💬 ${ip.messageCount || 0} mensajes
-                        </div>
-                    `);
-                    
-                    mapMarkers.push(marker);
-                    marker.addTo(mapInstance);
-                    
-                    // Estadísticas
+                    const size = Math.max(10, Math.min((ip.messageCount || 1) * 2 + 8, 20));
+                    const { x, y } = projectLatLon(geo.lat, geo.lon);
+                    dots += `
+                        <div class="ip-dot" style="left:${x}%; top:${y}%; width:${size}px; height:${size}px; background:${color};">
+                            <div class="ip-tooltip">
+                                <b>${ip.ip}</b><br>
+                                📍 ${geo.city || 'Desconocido'}, ${geo.country || 'Desconocido'}<br>
+                                🏢 ${geo.isp || 'N/A'}<br>
+                                💬 ${ip.messageCount || 0} mensajes
+                            </div>
+                        </div>`;
+                    plotted++;
                     countries[geo.country || 'Desconocido'] = (countries[geo.country || 'Desconocido'] || 0) + 1;
                     if (geo.city) citiesCount.add(geo.city);
                 }
             });
-            
-            // Mostrar stats
+
+            pointsEl.innerHTML = dots;
+            if (emptyEl) emptyEl.style.display = plotted > 0 ? 'none' : 'block';
+
+            // Stats
             const topCountry = Object.entries(countries).sort((a, b) => b[1] - a[1])[0];
             document.getElementById('mapStats').innerHTML = `
                 <div class="map-stat-card">
@@ -1112,7 +1109,6 @@
                     <div class="value" style="font-size:1rem;">${topCountry ? topCountry[0] : 'N/A'}</div>
                 </div>
             `;
-            
         } catch (e) {
             console.error('Error loading map data:', e);
         }
