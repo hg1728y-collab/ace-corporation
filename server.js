@@ -290,17 +290,33 @@ function parseUserAgent(ua) {
 }
 
 async function geolocateIP(ip) {
-    // IPs locales no se geolocalizan
-    if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
-        return { country: 'Local', city: 'Localhost', isp: 'Local', lat: 0, lon: 0 };
+    if (!ip) {
+        return { country: 'Local', city: 'Localhost', isp: 'Local', countryCode: '', lat: 0, lon: 0 };
+    }
+    // Limpiar prefijo IPv4-mapped IPv6 (Express suele reportar ::ffff:127.0.0.1)
+    const cleanIp = ip.replace('::ffff:', '');
+    // IPs locales/privadas no se geolocalizan (incluye loopback y rangos RFC1918)
+    if (cleanIp === '127.0.0.1' || ip === '::1' || cleanIp === '::1' ||
+        cleanIp.startsWith('192.168.') || cleanIp.startsWith('10.') ||
+        /^172\.(1[6-9]|2\d|3[01])\./.test(cleanIp)) {
+        const local = { country: 'Local', city: 'Localhost', isp: 'Local', countryCode: '', lat: 0, lon: 0 };
+        geoCache.set(ip, local);
+        return local;
     }
     if (geoCache.has(ip)) {
         return geoCache.get(ip);
     }
     try {
-        const cleanIp = ip.replace('::ffff:', '');
-        const res = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,country,countryCode,regionName,city,isp,lat,lon,query`);
-        const data = await res.json();
+        // Timeout de 4s: si ip-api.com está lento/caído, no colgamos el panel
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 4000);
+        let data;
+        try {
+            const res = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,country,countryCode,regionName,city,isp,lat,lon,query`, { signal: controller.signal });
+            data = await res.json();
+        } finally {
+            clearTimeout(timer);
+        }
         if (data.status === 'success') {
             const geo = {
                 country: data.country,
@@ -964,10 +980,16 @@ app.get('/api/admin/messages', adminAuth, requirePermission('view_messages'), (r
 });
 
 // Lista de IPs con comportamiento + geolocalización
-app.get('/api/admin/ips', adminAuth, requirePermission('view_dashboard'), async (req, res) => {
+app.get('/api/admin/ips', adminAuth, requirePermission('view_dashboard'), (req, res) => {
     const ips = [];
     for (const [ip, behavior] of ipBehavior.entries()) {
-        const geo = geoCache.get(ip) || await geolocateIP(ip);
+        let geo = geoCache.get(ip);
+        if (!geo) {
+            // No bloquear la respuesta: geolocalizar en segundo plano.
+            // En la próxima carga del panel (auto-refresh 5s) ya estará cacheado.
+            geolocateIP(ip).catch(() => {});
+            geo = { country: 'Cargando…', countryCode: '', city: '', isp: '', lat: 0, lon: 0 };
+        }
         ips.push({
             ip: ip.replace('::ffff:', ''),
             messageCount: behavior.messageCount,

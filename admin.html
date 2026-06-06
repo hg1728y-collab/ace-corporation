@@ -396,113 +396,7 @@
     .toast.error { border-color: var(--red); color: var(--red); }
 
     /* ===== MAPA ===== */
-    #worldMap {
-        width: 100%;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: #0d1b2a;
-        margin-bottom: 1.5rem;
-        overflow: hidden;
-        position: relative;
-    }
-    .map-inner {
-        position: relative;
-        width: 100%;
-        padding-top: 50%; /* ratio 2:1 equirectangular */
-        background-image: url('https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg');
-        background-size: 100% 100%;
-        background-repeat: no-repeat;
-        filter: grayscale(0.3) brightness(0.9);
-    }
-    .map-points {
-        position: absolute;
-        inset: 0;
-    }
-    .map-empty {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        color: rgba(255,255,255,0.85);
-        background: rgba(0,0,0,0.5);
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        font-size: 0.85rem;
-    }
-    .ip-dot {
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        cursor: pointer;
-        border: 2px solid #fff;
-        box-shadow: 0 0 8px rgba(0,0,0,0.5);
-    }
-    .ip-dot::after {
-        content: '';
-        position: absolute;
-        inset: -6px;
-        border-radius: 50%;
-        background: inherit;
-        opacity: 0.35;
-        animation: dotPulse 2s ease-in-out infinite;
-        z-index: -1;
-    }
-    @keyframes dotPulse {
-        0%, 100% { transform: scale(1); opacity: 0.35; }
-        50% { transform: scale(1.8); opacity: 0; }
-    }
-    .ip-dot .ip-tooltip {
-        position: absolute;
-        bottom: 150%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #1a1a1a;
-        color: #fff;
-        padding: 0.5rem 0.7rem;
-        border-radius: 6px;
-        font-size: 0.7rem;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s;
-        z-index: 100;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    .ip-dot:hover .ip-tooltip {
-        opacity: 1;
-    }
-    .map-panel {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    .map-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-    .map-stat-card {
-        background: var(--panel-2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 1rem;
-        text-align: center;
-    }
-    .map-stat-card .value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--green);
-        margin: 0.5rem 0;
-    }
-    .map-stat-card .label {
-        color: var(--text-dim);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-    }
+
 </style>
 </head>
 <body>
@@ -553,19 +447,6 @@
     <!-- STATS -->
     <div class="stats-grid" id="statsGrid"></div>
 
-    <!-- THREAT MAP -->
-    <div class="map-panel">
-        <div class="panel-head" style="margin-bottom: 1rem;">
-            <h2>🌍 Conexiones Globales de IP</h2>
-        </div>
-        <div class="map-stats" id="mapStats"></div>
-        <div id="worldMap">
-            <div class="map-inner" id="mapInner">
-                <div class="map-points" id="mapPoints"></div>
-                <div class="map-empty" id="mapEmpty">Sin conexiones registradas todavía</div>
-            </div>
-        </div>
-    </div>
 
     <div class="grid-2">
         <!-- EVENT LOG -->
@@ -705,7 +586,6 @@
         document.getElementById('meUser').textContent = sessionStorage.getItem('ace_admin_user') || '—';
         document.getElementById('meRol').textContent = '(' + (sessionStorage.getItem('ace_admin_role') || '') + ')';
         applyPermisos();
-        setTimeout(() => initMap(), 300);
         refreshTodos();
         refreshHorar = setInterval(refreshTodos, 5000);
     }
@@ -722,15 +602,14 @@
             if (myPermisos.includes('view_messages')) tasks.push(loadMensajes());
             if (myPermisos.includes('manage_users')) tasks.push(loadUsers());
             if (myPermisos.includes('manage_ips')) tasks.push(loadBanearnedIPs());
-            tasks.push(loadMapData());
             await Promise.all(tasks);
         } catch (e) { /* sesión expirada manejada en api() */ }
     }
 
     const STAT_CARDS = [
-        { key: 'totalSolicitudes', label: 'Solicitudes', cls: '' },
-        { key: 'totalMensajes', label: 'Mensajes', cls: 'ok' },
-        { key: 'totalErrores', label: 'Errores', cls: 'danger' },
+        { key: 'totalRequests', label: 'Solicitudes', cls: '' },
+        { key: 'totalMessages', label: 'Mensajes', cls: 'ok' },
+        { key: 'totalErrors', label: 'Errores', cls: 'danger' },
         { key: 'totalDDoS', label: 'Intentos DDoS', cls: 'danger' },
         { key: 'blockedNow', label: 'IPs bloqueadas', cls: 'danger' },
         { key: 'totalRateLimited', label: 'Rate Limited', cls: 'warn' },
@@ -1039,80 +918,6 @@
         loadUsers();
     }
 
-    // ===== MAPA MUNDIAL (imagen + puntos, sin Leaflet) =====
-    // initMap solo dispara la carga de datos; no hay tiles ni librería externa
-    async function initMap() {
-        loadMapData();
-    }
-
-    // Proyección equirectangular: lat/lon -> % sobre la imagen
-    function projectLatLon(lat, lon) {
-        const x = (lon + 180) / 360 * 100;
-        const y = (90 - lat) / 180 * 100;
-        return { x, y };
-    }
-
-    async function loadMapData() {
-        try {
-            const data = await api('/api/admin/ips');
-            const pointsEl = document.getElementById('mapPoints');
-            const emptyEl = document.getElementById('mapEmpty');
-            if (!data.ips || !pointsEl) return;
-
-            const countries = {};
-            const citiesCount = new Set();
-            let dots = '';
-            let plotted = 0;
-
-            data.ips.forEach(ip => {
-                const geo = ip.geo || {};
-                // El servidor manda lat/lon. Excluir 0,0 (locales/desconocidos)
-                if (geo.lat && geo.lon && !(geo.lat === 0 && geo.lon === 0)) {
-                    const color = ip.ddosBloqueado ? '#ff4d42' : (ip.bloqueado ? '#ffc043' : '#4CAF50');
-                    const size = Math.max(10, Math.min((ip.messageCount || 1) * 2 + 8, 20));
-                    const { x, y } = projectLatLon(geo.lat, geo.lon);
-                    dots += `
-                        <div class="ip-dot" style="left:${x}%; top:${y}%; width:${size}px; height:${size}px; background:${color};">
-                            <div class="ip-tooltip">
-                                <b>${ip.ip}</b><br>
-                                📍 ${geo.city || 'Desconocido'}, ${geo.country || 'Desconocido'}<br>
-                                🏢 ${geo.isp || 'N/A'}<br>
-                                💬 ${ip.messageCount || 0} mensajes
-                            </div>
-                        </div>`;
-                    plotted++;
-                    countries[geo.country || 'Desconocido'] = (countries[geo.country || 'Desconocido'] || 0) + 1;
-                    if (geo.city) citiesCount.add(geo.city);
-                }
-            });
-
-            pointsEl.innerHTML = dots;
-            if (emptyEl) emptyEl.style.display = plotted > 0 ? 'none' : 'block';
-
-            // Stats
-            const topCountry = Object.entries(countries).sort((a, b) => b[1] - a[1])[0];
-            document.getElementById('mapStats').innerHTML = `
-                <div class="map-stat-card">
-                    <div class="label">IPs Totales</div>
-                    <div class="value">${data.ips.length}</div>
-                </div>
-                <div class="map-stat-card">
-                    <div class="label">Países</div>
-                    <div class="value">${Object.keys(countries).length}</div>
-                </div>
-                <div class="map-stat-card">
-                    <div class="label">Ciudades</div>
-                    <div class="value">${citiesCount.size}</div>
-                </div>
-                <div class="map-stat-card">
-                    <div class="label">País Principal</div>
-                    <div class="value" style="font-size:1rem;">${topCountry ? topCountry[0] : 'N/A'}</div>
-                </div>
-            `;
-        } catch (e) {
-            console.error('Error loading map data:', e);
-        }
-    }
 
     // Auto-login si hay token guardado
     if (token) {
