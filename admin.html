@@ -402,8 +402,18 @@
         height: 400px;
         border-radius: 10px;
         border: 1px solid var(--border);
-        background: var(--panel-2);
+        background: #e8e8e8;
         margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+    }
+    .leaflet-container {
+        background: #e8e8e8 !important;
+        font-family: var(--mono) !important;
+    }
+    .leaflet-control-zoom a {
+        color: var(--text-dark) !important;
     }
     .map-panel {
         background: var(--panel);
@@ -662,7 +672,6 @@
         { key: 'totalDDoS', label: 'Intentos DDoS', cls: 'danger' },
         { key: 'blockedNow', label: 'IPs bloqueadas', cls: 'danger' },
         { key: 'totalRateLimited', label: 'Rate Limited', cls: 'warn' },
-        { key: 'totalInsults', label: 'Insultos', cls: 'warn' },
         { key: 'totalOutOfScope', label: 'Fuera de scope', cls: '' }
     ];
 
@@ -973,27 +982,48 @@
     let mapMarkers = [];
 
     async function initMap() {
+        // Prevenir doble inicialización
+        if (mapInstance) {
+            mapInstance.invalidateSize();
+            return;
+        }
+        // Si Leaflet ya está cargado, usar directo
+        if (window.L) {
+            buildMap();
+            return;
+        }
         // Cargar Leaflet
         const leafletScript = document.createElement('script');
         leafletScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-        leafletScript.onload = () => {
-            // Create mapa
-            mapInstance = L.map('worldMap', {
-                center: [20, 0],
-                zoom: 2,
-                dragging: true,
-                zoomControl: true,
-                attributionControl: false
-            });
-            
-            // Tile layer oscuro
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19
-            }).addTo(mapInstance);
-            
-            loadMapData();
-        };
+        leafletScript.onload = () => buildMap();
         document.head.appendChild(leafletScript);
+    }
+
+    function buildMap() {
+        const mapEl = document.getElementById('worldMap');
+        if (!mapEl || mapInstance) return;
+
+        mapInstance = L.map('worldMap', {
+            center: [20, 0],
+            zoom: 2,
+            minZoom: 1,
+            dragging: true,
+            zoomControl: true,
+            attributionControl: false,
+            worldCopyJump: true
+        });
+
+        // Tile layer claro (combina con dashboard blanco)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            subdomains: 'abcd'
+        }).addTo(mapInstance);
+
+        // FIX cuadrado negro: recalcular tamaño después de render
+        setTimeout(() => mapInstance.invalidateSize(), 200);
+        setTimeout(() => mapInstance.invalidateSize(), 600);
+
+        loadMapData();
     }
 
     async function loadMapData() {
@@ -1066,13 +1096,6 @@
             console.error('Error loading map data:', e);
         }
     }
-
-    // Inicializar mapa cuando carga el dashboard
-    setTimeout(() => {
-        if (document.getElementById('worldMap')) {
-            initMap();
-        }
-    }, 500);
 
     // Auto-login si hay token guardado
     if (token) {
