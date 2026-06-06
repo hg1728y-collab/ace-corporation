@@ -10,6 +10,68 @@ const path = require('path');
 
 dotenv.config();
 
+// ===== CAPA DE PERSISTENCIA =====
+// En DigitalOcean App Platform el filesystem es EFÍMERO: se borra en cada deploy/reinicio.
+// Si hay DATABASE_URL (Managed Database), guardamos en PostgreSQL (persistente).
+// Si no, caemos a archivos locales (para desarrollo).
+const { Pool } = require('pg');
+const USE_DB = !!process.env.DATABASE_URL;
+let pool = null;
+// SSL: las DB remotas (DigitalOcean Managed DB) lo requieren; localhost no.
+function shouldUseSSL(url) {
+    if (!url) return false;
+    if (/sslmode=disable/.test(url)) return false;
+    if (/localhost|127\.0\.0\.1/.test(url)) return false;
+    return true;
+}
+if (USE_DB) {
+    pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: shouldUseSSL(process.env.DATABASE_URL) ? { rejectUnauthorized: false } : false
+    });
+    pool.on('error', (err) => console.error('Error en pool de Postgres:', err.message));
+}
+
+async function initStorage() {
+    if (!USE_DB) {
+        console.log('💾 Persistencia: archivos locales (sin DATABASE_URL)');
+        return;
+    }
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS kv_store (
+            key TEXT PRIMARY KEY,
+            value JSONB NOT NULL,
+            updated_at TIMESTAMPTZ DEFAULT now()
+        )
+    `);
+    console.log('✅ Persistencia: PostgreSQL (Managed Database) conectada');
+}
+
+// Lee un valor (objeto JS ya parseado) o null si no existe
+async function kvGet(key) {
+    if (USE_DB) {
+        const r = await pool.query('SELECT value FROM kv_store WHERE key = $1', [key]);
+        return r.rows[0] ? r.rows[0].value : null;
+    }
+    const file = key + '.json';
+    if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, 'utf8'));
+    return null;
+}
+
+// Guarda un valor (lo serializa a JSON)
+async function kvSet(key, value) {
+    if (USE_DB) {
+        await pool.query(
+            `INSERT INTO kv_store (key, value, updated_at)
+             VALUES ($1, $2::jsonb, now())
+             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+            [key, JSON.stringify(value)]
+        );
+        return;
+    }
+    fs.writeFileSync(key + '.json', JSON.stringify(value, null, 2));
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -192,6 +254,43 @@ const systemLogs = {
 const MAX_LOG_ENTRIES = 1000;
 const geoCache = new Map(); // Cache de geolocalización { ip: { country, city, ... } }
 
+// ===== PERSISTENCIA DE IPs EN VIVO =====
+// La lista de IPs del panel se arma desde ipBehavior (Map en memoria). Para que
+// sobreviva reinicios/deploys, persistimos ipBehavior y geoCache también.
+async function saveIPBehavior() {
+    try {
+        const obj = {};
+        for (const [ip, b] of ipBehavior.entries()) {
+            // requestTimes es transitorio (ventana de 10s para DDoS), no se guarda
+            const { requestTimes, ...rest } = b;
+            obj[ip] = rest;
+        }
+        await kvSet('ip-behavior', obj);
+    } catch (e) { console.error('Error guardando ip-behavior:', e.message); }
+}
+async function loadIPBehavior() {
+    try {
+        const data = await kvGet('ip-behavior');
+        if (data) {
+            for (const [ip, b] of Object.entries(data)) {
+                b.requestTimes = []; // reiniciar ventana de rate-limit al arrancar
+                ipBehavior.set(ip, b);
+            }
+            console.log(`✅ Comportamiento de IPs cargado (${ipBehavior.size} IPs)`);
+        }
+    } catch (e) { console.error('Error cargando ip-behavior:', e.message); }
+}
+async function saveGeoCache() {
+    try { await kvSet('geo-cache', Object.fromEntries(geoCache)); }
+    catch (e) { console.error('Error guardando geo-cache:', e.message); }
+}
+async function loadGeoCache() {
+    try {
+        const data = await kvGet('geo-cache');
+        if (data) for (const [ip, g] of Object.entries(data)) geoCache.set(ip, g);
+    } catch (e) { console.error('Error cargando geo-cache:', e.message); }
+}
+
 function addLog(type, ip, details) {
     const entry = {
         id: Date.now() + Math.random().toString(36).slice(2, 8),
@@ -212,10 +311,10 @@ function addLog(type, ip, details) {
 const SYSTEM_LOGS_FILE = 'system-logs.json';
 let saveLogsTimer = null;
 
-function loadSystemLogs() {
+async function loadSystemLogs() {
     try {
-        if (fs.existsSync(SYSTEM_LOGS_FILE)) {
-            const data = JSON.parse(fs.readFileSync(SYSTEM_LOGS_FILE, 'utf8'));
+        const data = await kvGet('system-logs');
+        if (data) {
             if (Array.isArray(data.events)) systemLogs.events = data.events;
             if (Array.isArray(data.chatMessages)) systemLogs.chatMessages = data.chatMessages;
             if (data.stats) {
@@ -230,24 +329,26 @@ function loadSystemLogs() {
     }
 }
 
-function saveSystemLogs() {
+async function saveSystemLogs() {
     try {
-        fs.writeFileSync(SYSTEM_LOGS_FILE, JSON.stringify({
+        await kvSet('system-logs', {
             events: systemLogs.events,
             chatMessages: systemLogs.chatMessages,
             stats: systemLogs.stats
-        }, null, 2));
+        });
     } catch (e) {
         console.error('Error guardando logs:', e.message);
     }
 }
 
-// Guardado throttled: agrupa escrituras para no saturar el disco (máx 1 cada 3s)
+// Guardado throttled: agrupa escrituras para no saturar la base (máx 1 cada 3s)
 function scheduleSaveLogs() {
     if (saveLogsTimer) return;
     saveLogsTimer = setTimeout(() => {
         saveLogsTimer = null;
         saveSystemLogs();
+        saveIPBehavior();
+        saveGeoCache();
     }, 3000);
 }
 
@@ -342,11 +443,11 @@ async function geolocateIP(ip) {
 const IP_LOG_FILE = 'ips-log.json';
 let ipLog = {}; // { ip: { firstSeen, lastSeen, accessCount, geo } }
 
-function loadIPLog() {
+async function loadIPLog() {
     try {
-        if (fs.existsSync(IP_LOG_FILE)) {
-            const data = fs.readFileSync(IP_LOG_FILE, 'utf8');
-            ipLog = JSON.parse(data);
+        const data = await kvGet('ips-log');
+        if (data) {
+            ipLog = data;
             console.log(`✅ Cargué registro de IPs (${Object.keys(ipLog).length} únicas)`);
         }
     } catch (e) {
@@ -355,9 +456,9 @@ function loadIPLog() {
     }
 }
 
-function saveIPLog() {
+async function saveIPLog() {
     try {
-        fs.writeFileSync(IP_LOG_FILE, JSON.stringify(ipLog, null, 2));
+        await kvSet('ips-log', ipLog);
     } catch (e) {
         console.error('Error guardando IP log:', e.message);
     }
@@ -383,11 +484,11 @@ async function logIPAccess(ip) {
 const BLOCKED_IPS_FILE = 'blocked-ips.json';
 let blockedIPs = {}; // { ip: { bannedAt, reason, bannedBy } }
 
-function loadBlockedIPs() {
+async function loadBlockedIPs() {
     try {
-        if (fs.existsSync(BLOCKED_IPS_FILE)) {
-            const data = fs.readFileSync(BLOCKED_IPS_FILE, 'utf8');
-            blockedIPs = JSON.parse(data);
+        const data = await kvGet('blocked-ips');
+        if (data) {
+            blockedIPs = data;
             console.log(`✅ Cargué IPs bloqueadas (${Object.keys(blockedIPs).length} baneadas)`);
         }
     } catch (e) {
@@ -396,9 +497,9 @@ function loadBlockedIPs() {
     }
 }
 
-function saveBlockedIPs() {
+async function saveBlockedIPs() {
     try {
-        fs.writeFileSync(BLOCKED_IPS_FILE, JSON.stringify(blockedIPs, null, 2));
+        await kvSet('blocked-ips', blockedIPs);
     } catch (e) {
         console.error('Error guardando blocked IPs:', e.message);
     }
@@ -729,19 +830,18 @@ const ROLES = {
 const USERS_FILE = path.join(__dirname, 'users.json');
 let users = {}; // { username: { passwordHash, role, permissions, createdAt, createdBy } }
 
-function loadUsers() {
+async function loadUsers() {
     try {
-        if (fs.existsSync(USERS_FILE)) {
-            users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
-        }
+        const data = await kvGet('users');
+        if (data) users = data;
     } catch (e) {
         console.error('Error cargando usuarios:', e.message);
         users = {};
     }
 }
-function saveUsers() {
+async function saveUsers() {
     try {
-        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+        await kvSet('users', users);
     } catch (e) {
         console.error('Error guardando usuarios:', e.message);
     }
@@ -764,30 +864,8 @@ function verifyPassword(password, stored) {
     }
 }
 
-// Inicializar: crear/sincronizar superadmin con ADMIN_PASSWORD en cada arranque
-loadUsers();
-loadIPLog();
-loadBlockedIPs();
-loadSystemLogs();
-if (!users['admin']) {
-    // No existe: crearlo
-    users['admin'] = {
-        passwordHash: hashPassword(ADMIN_PASSWORD),
-        role: 'superadmin',
-        permissions: ROLES.superadmin,
-        createdAt: new Date().toISOString(),
-        createdBy: 'sistema'
-    };
-    saveUsers();
-    console.log('✅ Usuario superadmin "admin" creado (contraseña = ADMIN_PASSWORD)');
-} else {
-    // Ya existe: re-sincronizar la contraseña con ADMIN_PASSWORD por si cambió
-    users['admin'].passwordHash = hashPassword(ADMIN_PASSWORD);
-    users['admin'].role = 'superadmin';
-    users['admin'].permissions = ROLES.superadmin;
-    saveUsers();
-    console.log('🔄 Contraseña del admin sincronizada con ADMIN_PASSWORD');
-}
+// El arranque (cargar datos + sincronizar admin) se hace al final, de forma async,
+// porque ahora la persistencia puede ser PostgreSQL (operaciones asíncronas).
 
 function generateToken() {
     return crypto.randomBytes(24).toString('hex');
@@ -1123,17 +1201,59 @@ app.get('/api/health', (req, res) => {
 // Servir archivos estáticos
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 ACE Corporation Chatbot corriendo en puerto ${PORT}`);
-    console.log(`📝 Chatbot en modo local (sin IA / sin API key). Admin en /admin`);
-});
 
-// Guardar logs antes de apagar (no perder datos recientes en reinicios/deploys)
-function gracefulShutdown() {
-    console.log('💾 Guardando logs antes de apagar...');
-    saveSystemLogs();
-    saveIPLog();
-    saveBlockedIPs();
+// ===== ARRANQUE ASÍNCRONO =====
+// 1) Conecta/crea la tabla de persistencia
+// 2) Carga datos guardados (IPs, logs, usuarios, baneos)
+// 3) Crea/sincroniza el superadmin
+// 4) Recién ahí empieza a escuchar
+(async () => {
+    try {
+        await initStorage();
+        await loadUsers();
+        await loadIPLog();
+        await loadBlockedIPs();
+        await loadSystemLogs();
+        await loadIPBehavior();
+        await loadGeoCache();
+
+        if (!users['admin']) {
+            users['admin'] = {
+                passwordHash: hashPassword(ADMIN_PASSWORD),
+                role: 'superadmin',
+                permissions: ROLES.superadmin,
+                createdAt: new Date().toISOString(),
+                createdBy: 'sistema'
+            };
+            await saveUsers();
+            console.log('✅ Usuario superadmin "admin" creado (contraseña = ADMIN_PASSWORD)');
+        } else {
+            users['admin'].passwordHash = hashPassword(ADMIN_PASSWORD);
+            users['admin'].role = 'superadmin';
+            users['admin'].permissions = ROLES.superadmin;
+            await saveUsers();
+            console.log('🔄 Contraseña del admin sincronizada con ADMIN_PASSWORD');
+        }
+
+        app.listen(PORT, () => {
+            console.log(`🚀 ACE Corporation Chatbot corriendo en puerto ${PORT}`);
+            console.log(`📝 Chatbot en modo local (sin IA / sin API key). Admin en /admin`);
+        });
+    } catch (e) {
+        console.error('❌ Error fatal en el arranque:', e.message);
+        process.exit(1);
+    }
+})();
+
+// Guardar datos antes de apagar (no perder lo reciente en reinicios/deploys)
+async function gracefulShutdown() {
+    console.log('💾 Guardando datos antes de apagar...');
+    try {
+        await Promise.all([saveSystemLogs(), saveIPLog(), saveBlockedIPs(), saveIPBehavior(), saveGeoCache()]);
+    } catch (e) {
+        console.error('Error guardando en shutdown:', e.message);
+    }
+    if (pool) { try { await pool.end(); } catch (e) {} }
     process.exit(0);
 }
 process.on('SIGTERM', gracefulShutdown);
