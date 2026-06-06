@@ -197,7 +197,10 @@ const MAX_MESSAGES_PER_MINUTE = 10;
 const BAN_DURATION_MS = 3600000; // 1 hora
 
 function getClientIp(req) {
-    return req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress;
+    let ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || '';
+    // Normalizar: quitar prefijo IPv4-mapped IPv6 para que todas las IPs tengan
+    // el mismo formato que muestra el panel (evita desajustes al bloquear/banear)
+    return ip.replace('::ffff:', '');
 }
 
 function isIPBlocked(ip) {
@@ -1098,6 +1101,7 @@ app.post('/api/admin/unblock', adminAuth, requirePermission('manage_ips'), (req,
         behavior.requestTimes = [];
         console.log(`✅ IP ${ip} desbloqueada manualmente por admin`);
         addLog('block', ip, { event: 'Desbloqueada manualmente por admin' });
+        scheduleSaveLogs();
         return res.json({ success: true, message: `IP ${ip} desbloqueada` });
     }
     res.status(404).json({ error: 'IP no encontrada' });
@@ -1106,14 +1110,18 @@ app.post('/api/admin/unblock', adminAuth, requirePermission('manage_ips'), (req,
 // Bloquear IP manualmente
 app.post('/api/admin/block', adminAuth, requirePermission('manage_ips'), (req, res) => {
     const { ip } = req.body;
-    if (!ipBehavior.has(ip)) {
-        ipBehavior.set(ip, { messageCount: 0, insultos: 0, lastMessage: Date.now(), requestTimes: [] });
+    if (!ip) return res.status(400).json({ error: 'IP requerida' });
+    let behavior = ipBehavior.get(ip) || ipBehavior.get('::ffff:' + ip);
+    if (!behavior) {
+        behavior = { messageCount: 0, insultos: 0, lastMessage: Date.now(), requestTimes: [] };
+        ipBehavior.set(ip, behavior);
     }
-    const behavior = ipBehavior.get(ip);
-    behavior.ddosBloqueado = true;
-    behavior.ddosBannedAt = Date.now();
+    // Bloqueo temporal manual: isIPBlocked verifica `bloqueado` + `bannedAt`
+    behavior.bloqueado = true;
+    behavior.bannedAt = Date.now();
     console.log(`🚫 IP ${ip} bloqueada manualmente por admin`);
     addLog('block', ip, { event: 'Bloqueada manualmente por admin' });
+    scheduleSaveLogs();
     res.json({ success: true, message: `IP ${ip} bloqueada` });
 });
 

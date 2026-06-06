@@ -283,13 +283,17 @@
         box-shadow: 0 12px 30px rgba(76, 175, 80, 0.15);
     }
     .stat-card .label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
-    .stat-card .value { font-size: 2rem; font-weight: 700; font-family: var(--display); line-height: 1; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; font-family: var(--display); line-height: 1; color: var(--text); }
+    .stat-card.info .value   { color: var(--blue); }
+    .stat-card.ok .value     { color: var(--green); }
+    .stat-card.warn .value   { color: var(--amber); }
     .stat-card.danger .value { color: var(--red); }
-    .stat-card.warn .value { color: var(--amber); }
-    .stat-card.ok .value { color: var(--green); }
-    .stat-card .accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--green); opacity: 0.5; }
-    .stat-card.danger .accent { background: var(--red); }
-    .stat-card.warn .accent { background: var(--amber); }
+    /* Barra lateral de color (accent) — neutral por defecto, según severidad si tiene clase */
+    .stat-card .accent { position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--text-dim); opacity: 0.25; }
+    .stat-card.info .accent   { background: var(--blue);  opacity: 0.6; }
+    .stat-card.ok .accent     { background: var(--green); opacity: 0.6; }
+    .stat-card.warn .accent   { background: var(--amber); opacity: 0.6; }
+    .stat-card.danger .accent { background: var(--red);   opacity: 0.6; }
 
     /* ===== LAYOUT ===== */
     .grid-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
@@ -607,13 +611,13 @@
     }
 
     const STAT_CARDS = [
-        { key: 'totalRequests', label: 'Solicitudes', cls: '' },
+        { key: 'totalRequests', label: 'Solicitudes', cls: 'info' },
         { key: 'totalMessages', label: 'Mensajes', cls: 'ok' },
+        { key: 'totalOutOfScope', label: 'Fuera de scope', cls: '' },
+        { key: 'totalRateLimited', label: 'Rate Limited', cls: 'warn' },
         { key: 'totalErrors', label: 'Errores', cls: 'danger' },
         { key: 'totalDDoS', label: 'Intentos DDoS', cls: 'danger' },
-        { key: 'blockedNow', label: 'IPs bloqueadas', cls: 'danger' },
-        { key: 'totalRateLimited', label: 'Rate Limited', cls: 'warn' },
-        { key: 'totalOutOfScope', label: 'Fuera de scope', cls: '' }
+        { key: 'blockedNow', label: 'IPs bloqueadas', cls: 'danger' }
     ];
 
     async function loadStats() {
@@ -810,19 +814,20 @@
     async function unbanIPAction(ip) {
         if (!confirm(`¿Desbloquear ${ip}?`)) return;
         try {
-            const result = await api('/api/admin/unban-ip', { ip }, 'POST');
+            const result = await post('/api/admin/unban-ip', { ip });
             alert(result.message);
             loadBanearnedIPs();
+            loadIPs();
         } catch (e) {
             alert('Error: ' + e);
         }
     }
 
     async function banIPFromList(ip, reason = '') {
-        reason = prompt(`Razón del baneo para ${ip}:`, reason || 'Comportamiento arepechoso');
+        reason = prompt(`Razón del baneo para ${ip}:`, reason || 'Comportamiento abusivo');
         if (!reason) return;
         try {
-            const result = await api('/api/admin/ban-ip', { ip, reason }, 'POST');
+            const result = await post('/api/admin/ban-ip', { ip, reason });
             alert(result.message);
             loadBanearnedIPs();
             loadIPs();
