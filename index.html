@@ -413,7 +413,7 @@
             padding: 2rem 1.5rem;
             border-radius: 12px;
             text-align: center;
-            border-top: 4px solid var(--accent-green);
+            border-top: 4px solid var(--green-accent);
             transition: all 0.3s ease;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
@@ -426,7 +426,7 @@
         .filosofia-icon {
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, var(--accent-green) 0%, #4CAF50 100%);
+            background: linear-gradient(135deg, var(--green-accent) 0%, #4CAF50 100%);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -2824,8 +2824,8 @@
         <div class="chat-container">
             <!-- WELCOME MESSAGE -->
             <div class="chat-welcome" id="chatWelcome">
-                <h3>¡Bienvenido a ACE!</h3>
-                <p>Habla con nuestros expertos en plastificaciones</p>
+                <h3>¿Te ayudamos con tu piso?</h3>
+                <p>Escribinos tu consulta y te respondemos.</p>
                 <div class="welcome-buttons">
                     <button class="btn-verde" onclick="startChat()">Iniciar Chat</button>
                     <button class="btn-negro" onclick="sendMessage('Presupuesto')">Presupuesto</button>
@@ -2838,7 +2838,7 @@
 
         <!-- INPUT AREA -->
         <div class="chat-input-area">
-            <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta..." onkeypress="handleEnter(event)">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Escribí tu mensaje..." onkeypress="handleEnter(event)">
             <button class="chat-send" onclick="sendMessage()">→</button>
         </div>
     </div>
@@ -2885,100 +2885,75 @@
         }
 
         const responseBank = {
-            insulto: [
-                "No entiendo tu frustración, pero estoy aquí para ayudarte con presupuestos, horarios y servicios de ACE.",
-                "¿Por qué dices eso? No es mi intención molestarte. ¿En qué te puedo ayudar?",
-                "Entiendo que estés molesto. Estoy aquí para asistirte con lo que necesites de ACE.",
-                "No quiero discutir. Si tienes dudas sobre nuestros servicios, estoy para ayudar.",
-                "Respeto tu opinión. ¿Hay algo específico de ACE en lo que pueda ayudarte?"
-            ],
             presupuesto: [
-                "Presupuestos sin costo. Depende del tamaño y estado del piso. Llamá: 2915-6686.",
-                "¿Necesitas presupuesto? Hacemos evaluaciones sin compromiso. Contactá: 2915-6686 o WhatsApp 096-41-9412.",
-                "Presupuestos personalizados según tu piso. Depende del tipo, tamaño y estado. Llamá para detalles: 2915-6686.",
-                "Quieres saber precio. Varía según: tipo de piso, tamaño, estado actual. Consultá sin costo: 2915-6686.",
-                "Presupuesto gratis y sin obligación. Te asesoramos sobre la mejor opción. Llamá: 2915-6686."
+                "El presupuesto es sin cargo. Como el precio depende del tamaño y el estado del piso, lo mejor es que nos llames al 2915-6686 y lo vemos.",
+                "Hacemos presupuestos sin compromiso. Pasanos los datos del piso por WhatsApp al 096-41-9412 y te pasamos un número.",
+                "Mirá, el precio varía según el tipo de piso, los metros y cómo esté. Llamanos al 2915-6686 y te lo calculamos.",
+                "Te lo presupuestamos gratis. Contanos qué piso tenés y cuántos metros, al 2915-6686 o WhatsApp 096-41-9412."
             ],
             servicio_general: [
-                "Ofrecemos Pulido, Plastificado, Hidrolaqueado e Instalación de Parquet. ¿Cuál te interesa?",
-                "Nuestros servicios: Pulido de pisos, Plastificado, Hidrolaqueado, y Parquet. ¿Necesitas alguno?",
-                "En ACE hacemos: Pulido profesional, Plastificado duradero, Hidrolaqueado, e Instalación de Parquet. ¿Cuál es tu caso?",
-                "Especializados en Pulido, Plastificado, Hidrolaqueado y Parquet. ¿Qué tipo de piso tienes?"
+                "Trabajamos pulido, plastificado, hidrolaqueado e instalación de parquet. ¿Qué piso tenés en mente?",
+                "Hacemos pulido, plastificado, hidrolaqueado y parquet. Contame qué necesitás y te oriento.",
+                "Nos dedicamos a pisos de madera: pulido, plastificado, hidrolaqueado y parquet nuevo. ¿Cuál sería tu caso?"
             ],
             pulido: [
-                "Pulido: dejamos el piso como nuevo. Dura 1-2 días. Ideal para pisos rayados o deslucidos.",
-                "El Pulido elimina rayones y devuelve el brillo. Consultá: 2915-6686.",
-                "Pulido profesional: recupera el aspecto original. Tiempo: 1-2 días. Llamá para presupuesto."
+                "Con el pulido te dejamos el piso como nuevo: sacamos los rayones y vuelve el brillo. Suele llevar uno o dos días.",
+                "El pulido va bien si el piso está rayado o apagado, queda impecable. Si querés te paso precio: 2915-6686.",
+                "Pulimos el piso y recupera el aspecto original. En general uno o dos días según los metros."
             ],
             plastificado: [
-                "Plastificado: protege el piso y lo hace brillante. Dura 1-3 días según tamaño.",
-                "El Plastificado protege de arañazos y desgaste. Acabado duradero y estético. Consultá: 2915-6686.",
-                "Plastificado de calidad que dura años. Consulta sin costo: 2915-6686."
+                "El plastificado protege la madera y le da un brillo lindo. Según el tamaño lleva entre uno y tres días.",
+                "Con el plastificado el piso queda protegido del desgaste y dura años. Cualquier duda, llamanos al 2915-6686.",
+                "El plastificado es de lo que más nos piden: protege y embellece. Te lo presupuestamos al 2915-6686."
             ],
             hidrolaqueado: [
-                "Hidrolaqueado: acabado natural y resistente. Ideal si querés ver la veta de la madera.",
-                "Hidrolaqueado ecológico y duradero. Realza la belleza natural del piso. Consultá: 2915-6686."
+                "El hidrolaqueado deja un acabado natural y resistente, ideal si querés que se vea la veta de la madera.",
+                "Es un acabado ecológico y duradero que realza la madera tal cual es. Si te interesa, llamanos al 2915-6686."
             ],
             parquet: [
-                "Instalación de Parquet: nuevos pisos de madera. Consultá presupuesto sin costo: 2915-6686.",
-                "Instalamos Parquet de calidad. Asesoramiento sobre tipos y precios. Llamá: 2915-6686."
+                "Instalamos parquet nuevo y te asesoramos con los tipos y precios. Llamanos al 2915-6686 y lo charlamos.",
+                "Colocamos parquet de buena calidad. Contanos el ambiente y te pasamos presupuesto: 2915-6686."
             ],
             horario: [
-                "Lunes-Viernes 8:00-18:00, Sábados 9:00-13:00.",
-                "Atendemos: Lunes a Viernes 8AM-6PM, Sábados 9AM-1PM.",
-                "Horario: Entre semana 8:00-18:00, fin de semana sábados 9:00-13:00.",
-                "Abiertos: Lunes-Viernes 8:00 a 18:00, Sábados de 9:00 a 13:00."
+                "Atendemos de lunes a viernes de 8 a 18, y los sábados de 9 a 13.",
+                "Estamos de lunes a viernes de 8:00 a 18:00 y sábados de 9:00 a 13:00.",
+                "De lunes a viernes abrimos de 8 a 18, y el sábado de 9 a 13."
             ],
             ubicacion: [
-                "Ubicación: 25 de Mayo 202, esquina Maciel, Montevideo.",
-                "Nos encontrás en: 25 de Mayo 202 (esquina Maciel), Ciudad Vieja, Montevideo.",
-                "Dirección: 25 de Mayo 202, Maciel, Montevideo. Fácil estacionamiento.",
-                "Estamos en 25 de Mayo 202 esquina Maciel. ¿Cómo llegás? Consultá."
+                "Estamos en 25 de Mayo 202, esquina Maciel, en Montevideo.",
+                "Nos encontrás en 25 de Mayo 202 (esquina Maciel), Ciudad Vieja, Montevideo.",
+                "El local está en 25 de Mayo 202 esquina Maciel, Montevideo."
             ],
             contacto: [
-                "Llamá: 2915-6686 | WhatsApp: 096-41-9412 | Email: ace@ace.com.uy",
-                "Contactanos: Teléfono 2915-6686 / WhatsApp 096-41-9412 / Email ace@ace.com.uy",
-                "Comunicáte: Tel 2915-6686 o WhatsApp 096-41-9412. Email: ace@ace.com.uy",
-                "Formas de contacto: Llamá 2915-6686, WhatsApp 096-41-9412, o email ace@ace.com.uy"
+                "Nos llamás al 2915-6686, por WhatsApp al 096-41-9412, o al mail ace@ace.com.uy.",
+                "Teléfono 2915-6686, WhatsApp 096-41-9412 y mail ace@ace.com.uy, como te quede más cómodo.",
+                "Escribinos al WhatsApp 096-41-9412 o llamanos al 2915-6686."
             ],
             saludo: [
-                "Hola, soy el asistente de ACE. ¿Necesitas presupuesto, horario, servicios o ubicación?",
-                "Bienvenido a ACE. ¿En qué te puedo ayudar hoy?",
-                "Hola. Estoy aquí para ayudarte con Pulido, Plastificado, Hidrolaqueado o Parquet.",
-                "Hola. ¿Qué servicio de ACE te interesa consultar?",
-                "¡Hola! Soy el asistente de ACE Corporation. ¿Cómo te puedo ayudar?"
+                "¡Hola! ¿En qué te damos una mano con tu piso?",
+                "Buenas, ¿qué necesitás?",
+                "¡Hola! Contame qué tenés en mente y te ayudo.",
+                "Hola, ¿cómo va? ¿En qué te podemos ayudar?"
             ],
             no_entiendo: [
-                "No entiendí bien. ¿Preguntás por presupuesto, horario, servicio o ubicación de ACE?",
-                "Disculpa, no capté. ¿Es sobre presupuestos, horarios o nuestros servicios?",
-                "No quedó claro. Preguntá sobre presupuesto, horario, servicios o dónde estamos.",
-                "No te entiendo. ¿Necesitás algo sobre ACE? Presupuesto, horario, servicios...",
-                "Disculpa. ¿Es consulta sobre Pulido, Plastificado, Hidrolaqueado o Parquet?"
+                "Perdoná, no te seguí bien. ¿Me lo decís de otra forma?",
+                "Disculpá, no me quedó claro. ¿A qué te referís?",
+                "No te entendí del todo. ¿Me das un poco más de detalle?",
+                "Contame un poco más y te ayudo."
             ],
-            frustacion: [
-                "Entiendo que sea difícil contactar. Llamá directamente: 2915-6686 o WhatsApp 096-41-9412.",
-                "Siento la frustración. El equipo de ACE te atiende mejor por teléfono: 2915-6686.",
-                "Tenés razón, a veces es más rápido hablar directo. Llamá: 2915-6686.",
-                "Entiendo tu impaciencia. Contactá directo al 2915-6686 para una respuesta más rápida."
-            ],
-            experiencia: [
-                "20+ años en el rubro. 5000+ proyectos completados. 98% satisfacción.",
-                "ACE desde 2001. Expertos en pisos con miles de clientes satisfechos.",
-                "Más de 20 años trabajando. Confianza de miles de familias uruguayas.",
-                "Fundada en 2001. Somos especialistas con décadas de experiencia."
+            frustracion: [
+                "Te entiendo, a veces por acá es más lento. Llamanos directo al 2915-6686 y te atendemos al toque.",
+                "Perdoná la demora. Si querés algo más rápido, marcá al 2915-6686 o escribinos al WhatsApp 096-41-9412.",
+                "Tenés razón, por teléfono te resolvemos más rápido: 2915-6686."
             ],
             fuera_scope: [
-                "Solo puedo ayudarte con presupuestos, horarios, servicios de ACE (Pulido, Plastificado, Hidrolaqueado, Parquet) y ubicación.",
-                "No puedo asistir con eso. Me especializo en servicios de ACE. ¿Necesitás algo sobre pisos?",
-                "Ese tema no es mi especialidad. Estoy para ayudarte con Pulido, Plastificado, Hidrolaqueado o Parquet."
+                "De eso no te puedo ayudar, pero si es algo de tu piso contame y lo vemos.",
+                "Eso ya se me escapa. Lo nuestro son los pisos, así que cualquier cosa de eso te ayudo.",
+                "De eso no sé, pero si tenés alguna consulta sobre el piso decime."
             ]
         };
 
-        function detectInsult(text) {
-            const normalized = normalizeText(text);
-            const insults = ['idiota', 'tonto', 'boludo', 'pelotudo', 'estupido', 'burro', 'imbecil', 'pendejo', 'basura', 'vos sos', 'che vos'];
-            return insults.some(word => normalized.includes(word));
-        }
+
 
         function detectFrustration(text) {
             const normalized = normalizeText(text);
@@ -2994,11 +2969,6 @@
 
         function botFallback(message) {
             const m = normalizeText(message);
-            
-            // DETECTAR INSULTOS
-            if (detectInsult(m)) {
-                return getRandomResponse('insulto');
-            }
             
             // DETECTAR FRUSTRACIÓN
             if (detectFrustration(m)) {

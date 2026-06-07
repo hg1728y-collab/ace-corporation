@@ -16,8 +16,12 @@
 ### PASO 1: Obtener API Key de Anthropic
 1. Ve a https://console.anthropic.com/
 2. Crea una cuenta (gratis)
-3. Obtén tu API Key en "API Keys"
-4. Copia la clave (ej: sk-ant-v6-...)
+3. Ve a **API Keys** → **Create Key**
+4. **Copia la clave ENTERA** (será algo como `sk-ant-api03-KJ5Yf92pXkL8nM3qR7vWxZ...` — muy larga, ~110 caracteres)
+5. Guardala en un lugar seguro
+
+⚠️ **Formato correcto:** `sk-ant-api03-...` (larguísima)  
+❌ **NO es válido:** `sk-ant-v6-...` (ese formato no existe — es un error de guías viejas)
 
 ### PASO 2: Instalar Node.js
 - Descarga de https://nodejs.org/ (versión LTS)
@@ -78,9 +82,49 @@ http://localhost:3000
 
 ---
 
-## 🚀 DESPLEGAR EN INTERNET (Opciones)
+## 🚀 DESPLEGAR EN DigitalOcean App Platform (RECOMENDADO)
 
-### OPCIÓN A: Heroku (GRATIS)
+**Esto es lo que estás usando. Seguí esto paso a paso.**
+
+### Requisitos previos:
+- Repositorio en GitHub con tu proyecto
+- Cuenta en DigitalOcean
+- Clave API de Anthropic (real, no la vieja falsa)
+
+### Pasos:
+
+1. **En DigitalOcean App Platform:**
+   - Ve a "Apps" → "Create App"
+   - Conecta tu repositorio de GitHub
+   - Selecciona la rama (main)
+
+2. **Configuración del app:**
+   - Selecciona "Node.js" como tipo
+   - HTTP Port: `3000` (o deja automático)
+
+3. **Environment Variables (AQUÍ VA LA CLAVE):**
+   - Click en tu componente → "Settings" → "Environment Variables"
+   - **Agrega estas variables:**
+     ```
+     ANTHROPIC_API_KEY = (pega tu clave real aquí, ej: sk-ant-api03-...)
+     ```
+     Marcala como **Encrypted** 🔒
+   - (Opcional) Si quieres cambiar contraseña admin:
+     ```
+     ADMIN_PASSWORD = tu-super-contraseña-fuerte
+     ```
+   - Guardá
+
+4. **Deploy:**
+   - DigitalOcean detecta el package.json y corre `npm start` automáticamente
+   - Esperá a que termine (verde = listo)
+   - Tu sitio está en línea en: `https://tuapp-xxxx.ondigitalocean.app`
+
+**❌ NO hagas esto:**
+- No subas el archivo `.env` a GitHub (ya está en .gitignore, bien)
+- No uses la clave vieja falsa (`sk-ant-v6-...`)
+
+---
 1. Crea cuenta en https://heroku.com
 2. Descarga Heroku CLI
 3. Desde tu carpeta:
@@ -190,9 +234,36 @@ En producción, guarda en base de datos (PostgreSQL, MongoDB, Firebase).
 
 ---
 
-## 🐛 Solucionar Problemas
+## 🐛 El chatbot se queda en "Escribiendo..."
 
-### Error: "ANTHROPIC_API_KEY no definida"
+### Causas y soluciones:
+
+**1. La API key es inválida o falsa** ← Esta es la más común
+   - ✅ Verificá que empiece con `sk-ant-api03-` y sea **muy larga** (~110 caracteres)
+   - ❌ Si dice `sk-ant-v6-...` o es corta, NO es válida
+   - **Solución:** Obtené una nueva en https://console.anthropic.com/
+
+**2. La variable ANTHROPIC_API_KEY no está configurada en DigitalOcean**
+   - ✅ En tu app → Settings → Environment Variables, verificá que esté:
+   ```
+   ANTHROPIC_API_KEY = sk-ant-api03-TU-CLAVE-REAL
+   ```
+   - Marcala como Encrypted 🔒
+   - Guardá y redespliega
+
+**3. El servidor no está corriendo (si lo corrés localmente)**
+   - Abrí terminal en tu carpeta y corre:
+   ```bash
+   node server.js
+   ```
+   - Deberías ver: `🚀 ACE Corporation Chatbot corriendo en puerto 3000`
+
+**4. Revisá los logs del servidor:**
+   - Si estás en DigitalOcean, ve a tu app → "Logs"
+   - Si corrés localmente, mirá la terminal donde corriste `node server.js`
+   - Buscá líneas que digan `❌ Error` o `Invalid API Key`
+
+---
 - ✅ Crea archivo `.env`
 - ✅ Agrega tu clave real
 - ✅ Reinicia el servidor

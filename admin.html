@@ -501,7 +501,7 @@
     <!-- IPs BLOCKEDS (BANEO PERMANENTE) -->
     <div class="panel" id="panelBanearnedIPs" style="display:none; margin-top:1.2rem;">
         <div class="panel-head">
-            <h2>🚫 IPs Bloqueadas</h2>
+            <h2>IPs Bloqueadas</h2>
             <span class="count" id="bloqueadasCount">0 bloqueadas</span>
         </div>
         <div class="panel-body" id="bloqueadasIPsBody"></div>
@@ -639,13 +639,25 @@
         return d.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
+    // Etiquetas legibles en español para los tipos de evento
+    const LOG_LABELS = {
+        message: 'mensaje',
+        ddos: 'ddos',
+        ratelimit: 'límite',
+        outofscope: 'fuera de tema',
+        error: 'error',
+        block: 'bloqueo',
+        banned: 'baneo',
+        insult: 'insulto'
+    };
+
     function logDetailText(e) {
         const ip = `<span class="ip">${(e.ip||'').replace('::ffff:','')}</span>`;
         const d = e.details || {};
         let extra = '';
-        if (e.type === 'message') extra = `<span class="meta">intent: ${d.intent || 'ninguno'} · ${d.tokens || 0} tokens</span>`;
-        else if (e.type === 'ddos') extra = `<span class="meta">${d.reason || 'patrón DDoS'}</span>`;
-        else if (e.type === 'ratelimit') extra = `<span class="meta">${d.messageCount} msgs/min</span>`;
+        if (e.type === 'message') extra = d.device ? `<span class="meta">desde ${d.device}</span>` : '';
+        else if (e.type === 'ddos') extra = `<span class="meta">${d.reason || 'demasiadas solicitudes'}</span>`;
+        else if (e.type === 'ratelimit') extra = `<span class="meta">${d.messageCount} mensajes en un minuto</span>`;
         else if (e.type === 'insult') extra = `<span class="meta">"${(d.message||'').replace(/</g,'&lt;')}"</span>`;
         else if (e.type === 'outofscope') extra = `<span class="meta">"${(d.message||'').replace(/</g,'&lt;')}"</span>`;
         else if (e.type === 'error') extra = `<span class="meta">${(d.error||d.event||'').replace(/</g,'&lt;')}</span>`;
@@ -661,7 +673,7 @@
         body.innerHTML = data.events.map(e => `
             <div class="log-entry">
                 <span class="log-time">${fmtHora(e.timestamp)}</span>
-                <span class="log-type ${e.type}">${e.type}</span>
+                <span class="log-type ${e.type}">${LOG_LABELS[e.type] || e.type}</span>
                 <span class="log-detail">${logDetailText(e)}</span>
             </div>
         `).join('');
@@ -670,13 +682,6 @@
     function flag(code) {
         if (!code || code.length !== 2) return '';
         return String.fromCodePoint(...[...code.toUpperCase()].map(c => 127397 + c.charCodeAt()));
-    }
-
-    function deviceIcon(device) {
-        if (device === 'Teléfono') return '📱';
-        if (device === 'Tablet') return '📱';
-        if (device === 'Escritorio') return '💻';
-        return '🖥️';
     }
 
     async function loadIPs() {
@@ -697,7 +702,7 @@
                     </span>
                 </div>
                 <div class="ip-geo">${flag(g.countryCode)} ${g.city || 'N/A'}, ${g.country || 'Desconocido'} · ${g.isp || 'N/A'}</div>
-                <div class="ip-geo">${deviceIcon(ip.device)} ${ip.device || 'Desconocido'} · ${ip.os || ''} · ${ip.browser || ''}</div>
+                <div class="ip-geo">${ip.device || 'Desconocido'} · ${ip.os || ''} · ${ip.browser || ''}</div>
                 <div class="ip-stats">
                     <span>msgs: <b>${ip.messageCount}</b></span>
                     <span>reqs/10s: <b>${ip.requestsInWindow}</b></span>
@@ -706,7 +711,7 @@
                     ${!myPermisos.includes('manage_ips') ? '' : (blocked
                         ? `<button class="mini-btn unblock" onclick="unblockIP('${ip.ip}')">Desbloquear</button>`
                         : `<button class="mini-btn block" onclick="blockIP('${ip.ip}')">Bloquear</button>`)}
-                    ${!myPermisos.includes('manage_ips') ? '' : `<button class="mini-btn" style="border-color:var(--red); color:var(--red);" onclick="banIPFromList('${ip.ip}')">🚫 Banear</button>`}
+                    ${!myPermisos.includes('manage_ips') ? '' : `<button class="mini-btn" style="border-color:var(--red); color:var(--red);" onclick="banIPFromList('${ip.ip}')">Banear</button>`}
                 </div>
             </div>`;
         }).join('');
@@ -721,7 +726,7 @@
             <div class="msg-entry">
                 <div class="msg-user">${(m.userMessage||'').replace(/</g,'&lt;')}</div>
                 <div class="msg-bot">${(m.botResponse||'').replace(/</g,'&lt;')}</div>
-                <div class="msg-meta">${(m.ip||'').replace('::ffff:','')} · ${fmtHora(m.timestamp)} · ${deviceIcon(m.device)} ${m.device || ''} ${m.os || ''} · ${m.intent || 'sin intent'}</div>
+                <div class="msg-meta">${(m.ip||'').replace('::ffff:','')} · ${fmtHora(m.timestamp)} · ${m.device || ''} ${m.os || ''}</div>
             </div>
         `).join('');
     }
@@ -789,7 +794,7 @@
             const data = await api('/api/admin/banned-ips');
             const body = document.getElementById('bloqueadasIPsBody');
             if (!data.bannedIPs || !data.bannedIPs.length) { 
-                body.innerHTML = '<div class="empty">✅ Sin IPs bloqueadas</div>'; 
+                body.innerHTML = '<div class="empty">Sin IPs bloqueadas</div>'; 
                 document.getElementById('bloqueadasCount').textContent = '0 bloqueadas';
                 return; 
             }
