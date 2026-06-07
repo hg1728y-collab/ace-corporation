@@ -190,7 +190,12 @@ function checkDDoS(ip) {
 // ===== RATE LIMITING + IP BANNING =====
 const ipBehavior = new Map(); // { ip: { messageCount, lastMessage, bloqueado, ddosBloqueado } }
 const MAX_MESSAGES_PER_MINUTE = 10;
-const BAN_DURATION_MS = 3600000; // 1 hora
+const BAN_DURATION_MS = 3600000; // 1 hora (bloqueo por defecto)
+
+// ===== AUTO-BLOQUEO POR SPAM DEL CHATBOT =====
+const CHAT_SPAM_THRESHOLD = 10;       // mensajes...
+const CHAT_SPAM_WINDOW = 30000;       // ...en 30 segundos
+const CHAT_SPAM_BLOCK_MS = 3600000;   // => auto-bloqueo de 1 hora
 
 function getClientIp(req) {
     let ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || '';
@@ -202,19 +207,23 @@ function getClientIp(req) {
 function isIPBlocked(ip) {
     const behavior = ipBehavior.get(ip);
     if (!behavior) return false;
-    if (behavior.bloqueado && Date.now() - behavior.bannedAt < BAN_DURATION_MS) {
+    if (behavior.bloqueado) {
+        // blockedUntil define hasta cuándo dura el bloqueo (timestamp)
+        if (behavior.blockedUntil && Date.now() >= behavior.blockedUntil) {
+            // expiró: se desbloquea solo
+            behavior.bloqueado = false;
+            behavior.blockedUntil = null;
+            behavior.messageCount = 0;
+            return false;
+        }
         return true;
-    }
-    if (behavior.bloqueado && Date.now() - behavior.bannedAt >= BAN_DURATION_MS) {
-        behavior.bloqueado = false;
-        behavior.messageCount = 0;
     }
     return false;
 }
 
 function updateIPBehavior(ip, messageLength) {
     if (!ipBehavior.has(ip)) {
-        ipBehavior.set(ip, { messageCount: 0, lastMessage: Date.now(), bloqueado: false });
+        ipBehavior.set(ip, { messageCount: 0, lastMessage: Date.now(), bloqueado: false, messageTimes: [] });
     }
     const behavior = ipBehavior.get(ip);
     const now = Date.now();
@@ -223,14 +232,25 @@ function updateIPBehavior(ip, messageLength) {
     if (now - behavior.lastMessage > 60000) {
         behavior.messageCount = 0;
     }
-
     behavior.messageCount++;
     behavior.lastMessage = now;
+
+    // Detección de spam: muchos mensajes en pocos segundos -> auto-bloqueo temporal
+    behavior.messageTimes = (behavior.messageTimes || []).filter(t => now - t < CHAT_SPAM_WINDOW);
+    behavior.messageTimes.push(now);
+    let isSpam = false;
+    if (behavior.messageTimes.length >= CHAT_SPAM_THRESHOLD) {
+        behavior.bloqueado = true;
+        behavior.blockedUntil = now + CHAT_SPAM_BLOCK_MS;
+        behavior.messageTimes = [];
+        isSpam = true;
+    }
 
     return {
         messageCount: behavior.messageCount,
         isRateLimited: behavior.messageCount > MAX_MESSAGES_PER_MINUTE,
-        isBlocked: behavior.bloqueado
+        isBlocked: behavior.bloqueado,
+        isSpam
     };
 }
 
@@ -260,8 +280,8 @@ async function saveIPBehavior() {
     try {
         const obj = {};
         for (const [ip, b] of ipBehavior.entries()) {
-            // requestTimes es transitorio (ventana de 10s para DDoS), no se guarda
-            const { requestTimes, ...rest } = b;
+            // requestTimes y messageTimes son transitorios (ventanas de tiempo), no se guardan
+            const { requestTimes, messageTimes, ...rest } = b;
             obj[ip] = rest;
         }
         await kvSet('ip-behavior', obj);
@@ -272,7 +292,8 @@ async function loadIPBehavior() {
         const data = await kvGet('ip-behavior');
         if (data) {
             for (const [ip, b] of Object.entries(data)) {
-                b.requestTimes = []; // reiniciar ventana de rate-limit al arrancar
+                b.requestTimes = []; // reiniciar ventanas de tiempo al arrancar
+                b.messageTimes = [];
                 ipBehavior.set(ip, b);
             }
             console.log(`✅ Comportamiento de IPs cargado (${ipBehavior.size} IPs)`);
@@ -722,7 +743,20 @@ app.post('/api/chat', async (req, res) => {
         }
 
         const ipStatus = updateIPBehavior(clientIp, message.length);
-        
+
+        if (ipStatus.isSpam) {
+            const mins = Math.round(CHAT_SPAM_BLOCK_MS / 60000);
+            console.warn(`🚫 Auto-bloqueo por spam: ${clientIp}`);
+            systemLogs.stats.totalBlocked++;
+            addLog('block', clientIp, { event: `Auto-bloqueo por spam (${CHAT_SPAM_THRESHOLD}+ mensajes en ${CHAT_SPAM_WINDOW/1000}s)` });
+            scheduleSaveLogs();
+            geolocateIP(clientIp);
+            return res.status(403).json({
+                error: 'Bloqueado por spam',
+                message: `Enviaste demasiados mensajes muy rápido. Quedás bloqueado del chat por ${mins} minutos.`
+            });
+        }
+
         if (ipStatus.isRateLimited) {
             console.warn(`⏱️ Rate limit para IP ${clientIp}: ${ipStatus.messageCount} mensajes en 1 min`);
             systemLogs.stats.totalRateLimited++;
@@ -1105,20 +1139,21 @@ app.post('/api/admin/unblock', adminAuth, requirePermission('manage_ips'), (req,
 
 // Bloquear IP manualmente
 app.post('/api/admin/block', adminAuth, requirePermission('manage_ips'), (req, res) => {
-    const { ip } = req.body;
+    const { ip, minutes } = req.body;
     if (!ip) return res.status(400).json({ error: 'IP requerida' });
     let behavior = ipBehavior.get(ip) || ipBehavior.get('::ffff:' + ip);
     if (!behavior) {
-        behavior = { messageCount: 0, insultos: 0, lastMessage: Date.now(), requestTimes: [] };
+        behavior = { messageCount: 0, lastMessage: Date.now(), requestTimes: [], messageTimes: [] };
         ipBehavior.set(ip, behavior);
     }
-    // Bloqueo temporal manual: isIPBlocked verifica `bloqueado` + `bannedAt`
+    // Bloqueo temporal del chatbot con la duración elegida por el admin
+    const mins = Math.max(1, parseInt(minutes) || 60);
     behavior.bloqueado = true;
-    behavior.bannedAt = Date.now();
-    console.log(`🚫 IP ${ip} bloqueada manualmente por admin`);
-    addLog('block', ip, { event: 'Bloqueada manualmente por admin' });
+    behavior.blockedUntil = Date.now() + mins * 60000;
+    console.log(`🚫 IP ${ip} bloqueada del chatbot por ${mins} min`);
+    addLog('block', ip, { event: `Bloqueada del chatbot por ${mins} minutos (admin)` });
     scheduleSaveLogs();
-    res.json({ success: true, message: `IP ${ip} bloqueada` });
+    res.json({ success: true, message: `IP ${ip} bloqueada del chatbot por ${mins} minutos` });
 });
 
 // ===== BANEO PERSISTENTE (bloqueado-ips.json) =====

@@ -782,8 +782,11 @@
         loadIPs(); loadStats();
     }
     async function blockIP(ip) {
-        if (!confirm('¿Bloquear la IP ' + ip + '?')) return;
-        const r = await post('/api/admin/block', { ip });
+        const input = prompt(`¿Por cuántos minutos bloquear ${ip} del chatbot?\n\n30 = media hora\n60 = 1 hora\n360 = 6 horas\n1440 = 1 día`, '60');
+        if (input === null) return;
+        const minutes = parseInt(input);
+        if (!minutes || minutes < 1) { toast('Cantidad de minutos inválida', false); return; }
+        const r = await post('/api/admin/block', { ip, minutes });
         toast(r.message || 'Bloqueada', r.success);
         loadIPs(); loadStats();
     }
