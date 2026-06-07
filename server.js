@@ -120,27 +120,23 @@ app.use((req, res, next) => {
                 message: `Tu acceso a este sitio fue bloqueado. Razón: ${info.reason || 'Bloqueado por el administrador'}`
             });
         }
-        // Si pide una página, mostrar pantalla de bloqueo
+        // Si pide una página, mostrar pantalla negra con aviso en inglés (arriba a la derecha)
         return res.send(`<!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8">
+<html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acceso Bloqueado</title>
+<title>Access denied</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',system-ui,sans-serif;}
-  body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%);color:#fff;text-align:center;padding:2rem;}
-  .box{max-width:480px;}
-  .icon{font-size:4rem;margin-bottom:1.5rem;}
-  h1{font-size:1.8rem;margin-bottom:1rem;color:#ff5b50;}
-  p{color:#bbb;line-height:1.6;margin-bottom:0.5rem;}
-  .reason{margin-top:1.5rem;padding:1rem;background:rgba(255,77,66,0.1);border:1px solid #ff4d42;border-radius:8px;font-size:0.9rem;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:#000;}
+  .notice{
+    position:fixed;top:18px;right:22px;
+    color:#8a8a8a;font-family:'Poppins',system-ui,sans-serif;
+    font-size:0.8rem;letter-spacing:0.03em;text-align:right;max-width:70vw;
+  }
 </style></head>
-<body><div class="box">
-  <div class="icon">🚫</div>
-  <h1>Acceso Bloqueado</h1>
-  <p>Tu acceso a este sitio web ha sido restringido por el administrador.</p>
-  <p>Si crees que se trata de un error, comunícate con nosotros.</p>
-  <div class="reason"><strong>Razón:</strong> ${info.reason || 'Bloqueado por el administrador'}</div>
-</div></body></html>`);
+<body>
+  <div class="notice">You have been blacklisted and can no longer access this site.</div>
+</body></html>`);
     }
     next();
 });
